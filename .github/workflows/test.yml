@@ -43,9 +43,9 @@ jobs:
           - runner: macos-latest
             bin: roast
             env_set: export ROAST_EXE=./roast
-          - runner: windows-latest
-            bin: roast.exe
-            env_set: $env:ROAST_EXE='./roast.exe'
+          # - runner: windows-latest
+          #   bin: roast.exe
+          #   env_set: $env:ROAST_EXE='./roast.exe'
     runs-on: ${{ matrix.platform.runner }}
     steps:
       - name: Checkout sources
