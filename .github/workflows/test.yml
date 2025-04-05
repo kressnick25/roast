@@ -27,11 +27,10 @@ jobs:
     strategy:
       matrix:
         node-version: [22.14.0]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
         os:
           - ubuntu-latest
-          # - macOS-latest
-          # - windows-latest
+          - macos-latest
+          - windows-latest
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
