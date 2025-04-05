@@ -93,16 +93,16 @@ impl log::Log for SimpleLogger {
         if self.enabled(record.metadata()) {
             match record.level() { 
                 Level::Debug | Level::Trace => {
-                    print!(
+                    eprint!(
                         "{} - {}:{} - ",
                         record.level(),
                         record.file().unwrap_or("unknown_file"),
                         record.line().unwrap_or(0)
                     );
                 },
-                Level::Info => println!("{}", record.args()),
-                Level::Warn => println!("{}", format!("{}", record.args()).yellow()),
-                Level::Error => println!("{}", format!("{}", record.args()).red())
+                Level::Info => eprintln!("{}", record.args()),
+                Level::Warn => eprintln!("{}", format!("{}", record.args()).yellow()),
+                Level::Error => eprintln!("{}", format!("{}", record.args()).red())
             }
         }
     }
