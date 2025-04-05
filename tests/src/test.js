@@ -117,7 +117,7 @@ test("02 - sort, there's a broken JSON among files", async () => {
     )
     .then(() => execa("./roast", [tempFolder]))
     .then((receivedStdOut) => {
-      match(receivedStdOut.stdout, /broken\.json/);
+      match(receivedStdOut.stderr, /broken\.json/);
       return pMap(testFilePaths, (oneOfPaths) =>
         fs.readJson(path.join(tempFolder, oneOfPaths), "utf8")
       ).then((contentsArray) => {
@@ -217,7 +217,7 @@ test("05 - no files found in the given directory", async () => {
   let stdOutContents = await execa("./roast", [tempFolder]);
   // CLI will complain no files could be found
   match(
-    stdOutContents.stdout,
+    stdOutContents.stderr,
     /The inputs don't lead to any json files! Exiting./,
     "05.01"
   );
