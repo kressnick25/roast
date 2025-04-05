@@ -16,6 +16,7 @@ import { temporaryDirectory } from "tempy";
 //   minifiedContents,
 //   prettifiedContents,
 // } from "./util/data.js";
+import { roastExe } from "./util/data.js";
 
 // -----------------------------------------------------------------------------
 
@@ -45,7 +46,7 @@ test("01 - array, LF line endings, preserve original", async () => {
         2
       ).replace(/\n/g, "\n")
     )
-    .then(() => execa("./roast", ["-s", tempFolder, "sortme.json"]))
+    .then(() => execa(roastExe, ["-s", tempFolder, "sortme.json"]))
     .then(() => fs.readFile(pathOfTheTestFile, "utf8"))
     .then((received) =>
       // execaCommand(`rm -rf ${path.join(path.resolve(), "../temp")}`)
@@ -95,7 +96,7 @@ test("02 - CRLF in, CR out", async () => {
         2
       ).replace(/\n/g, "\r\n")
     )
-    .then(() => execa("./roast", ["-s", tempFolder, "sortme.json", "-l", "cr"]))
+    .then(() => execa(roastExe, ["-s", tempFolder, "sortme.json", "-l", "cr"]))
     .then(() => fs.readFile(pathOfTheTestfile, "utf8"))
     .then((received) =>
       // execaCommand(`rm -rf ${path.join(path.resolve(), "../temp")}`)
@@ -145,7 +146,7 @@ test("03 - CRLF in, LF out", async () => {
         2
       ).replace(/\n/g, "\r\n")
     )
-    .then(() => execa("./roast", ["-s", tempFolder, "sortme.json", "-l", "lf"]))
+    .then(() => execa(roastExe, ["-s", tempFolder, "sortme.json", "-l", "lf"]))
     .then(() => fs.readFile(pathOfTheTestfile, "utf8"))
     .then((received) =>
       // execaCommand(`rm -rf ${path.join(path.resolve(), "../temp")}`)
@@ -195,7 +196,7 @@ test("04 - LF in, CRLF out", async () => {
         2
       ).replace(/\n/g, "\n")
     )
-    .then(() => execa("./roast", ["-s", tempFolder, "sortme.json", "-l", "crlf"]))
+    .then(() => execa(roastExe, ["-s", tempFolder, "sortme.json", "-l", "crlf"]))
     .then(() => fs.readFile(pathOfTheTestfile, "utf8"))
     .then((received) =>
       // execaCommand(`rm -rf ${path.join(path.resolve(), "../temp")}`)

@@ -9,14 +9,15 @@ import { createRequire } from "module";
 
 const require = createRequire(import.meta.url);
 const pack = require("../package.json");
+import { roastExe } from "./util/data.js";
 
 // -----------------------------------------------------------------------------
 
 test("01 - version output mode", async () => {
-  let reportedVersion1 = await execa("./roast", ["-V"]);
+  let reportedVersion1 = await execa(roastExe, ["-V"]);
   match(reportedVersion1.stdout, /\d+\.\d+\.\d+/, "01.01");
 
-  let reportedVersion2 = await execa("./roast", ["--version"]);
+  let reportedVersion2 = await execa(roastExe, ["--version"]);
   match(reportedVersion2.stdout, /\d+\.\d+\.\d+/, "01.02");
 });
 
@@ -28,7 +29,7 @@ test("02 - version flag trumps silent flag", async () => {
   fs.ensureDirSync(path.resolve(tempFolder));
   fs.writeFileSync(path.join(tempFolder, "sortme.json"), unsortedFile);
 
-  let output = await execa("./roast", [tempFolder, "-V", "-s"]).catch(
+  let output = await execa(roastExe, [tempFolder, "-V", "-s"]).catch(
     (err) => {
       throw new Error(err);
     }

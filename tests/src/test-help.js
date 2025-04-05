@@ -15,16 +15,17 @@ import { temporaryDirectory } from "tempy";
 //   minifiedContents,
 //   prettifiedContents,
 // } from "./util/data.js";
+import { roastExe } from "./util/data.js";
 
 // -----------------------------------------------------------------------------
 
 test("01 - help output mode", async () => {
-  let reportedVersion1 = await execa("./roast", ["-h"]);
+  let reportedVersion1 = await execa(roastExe, ["-h"]);
   match(reportedVersion1.stdout, /Usage/, "01.01");
   match(reportedVersion1.stdout, /Arguments/, "01.02");
   match(reportedVersion1.stdout, /Options/, "01.03");
 
-  let reportedVersion2 = await execa("./roast", ["--help"]);
+  let reportedVersion2 = await execa(roastExe, ["--help"]);
   match(reportedVersion2.stdout, /Usage/, "01.04");
   match(reportedVersion2.stdout, /Arguments/, "01.05");
   match(reportedVersion2.stdout, /Options/, "01.06");
@@ -38,7 +39,7 @@ test("02 - help flag trumps silent flag", async () => {
   fs.ensureDirSync(path.resolve(tempFolder));
   fs.writeFileSync(path.join(tempFolder, "sortme.json"), unsortedFile);
 
-  let output = await execa("./roast", [tempFolder, "-h", "--silent"]).catch(
+  let output = await execa(roastExe, [tempFolder, "-h", "--silent"]).catch(
     (err) => {
       throw new Error(err);
     }

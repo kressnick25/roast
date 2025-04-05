@@ -15,6 +15,7 @@ import { temporaryDirectory } from "tempy";
 //   minifiedContents,
 //   prettifiedContents,
 // } from "./util/data.js";
+import { roastExe } from "./util/data.js";
 
 // -----------------------------------------------------------------------------
 
@@ -28,7 +29,7 @@ test("01 - only node_modules with one file, flag disabled", async () => {
 
   let processedFilesContents = fs
     .writeFile(pathOfTheTestfile, originalContents)
-    .then(() => execa("./roast", ["-s", tempFolder]))
+    .then(() => execa(roastExe, ["-s", tempFolder]))
     .then(() => fs.readFile(pathOfTheTestfile, "utf8"))
     .then((testFile) =>
       execaCommand(`rm -rf ${tempFolder}`)
@@ -58,7 +59,7 @@ test("02- files inside and outside node_modules, flag disabled", async () => {
   fs.writeFileSync(pathOfTestFile1, originalContents);
   fs.writeFileSync(pathOfTestFile2, originalContents);
 
-  await execa("./roast", ["-s", tempFolder]).catch((err) => {
+  await execa(roastExe, ["-s", tempFolder]).catch((err) => {
     throw new Error(err);
   });
 

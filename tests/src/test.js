@@ -15,6 +15,7 @@ import {
   // sortedTabbedTestFileContents,
   minifiedContents,
   prettifiedContents,
+  roastExe
 } from "./util/data.js";
 
 // -----------------------------------------------------------------------------
@@ -55,7 +56,7 @@ test("01 - default sort, called on the whole folder", async () => {
         "foo:\n  bar"
       )
     )
-    .then(() => execa("./roast", [tempFolder]))
+    .then(() => execa(roastExe, [tempFolder]))
     .then(() =>
       pMap(testFilePaths, (oneOfPaths) =>
         fs.readJson(path.join(tempFolder, oneOfPaths), "utf8")
@@ -115,7 +116,7 @@ test("02 - sort, there's a broken JSON among files", async () => {
     .then(() =>
       fs.writeFile(path.join(tempFolder, "test1/broken.json"), '{a": "b"}\n')
     )
-    .then(() => execa("./roast", [tempFolder]))
+    .then(() => execa(roastExe, [tempFolder]))
     .then((receivedStdOut) => {
       match(receivedStdOut.stderr, /broken\.json/);
       return pMap(testFilePaths, (oneOfPaths) =>
@@ -145,7 +146,7 @@ test("03 - fixes minified dotfiles in JSON format", async () => {
 
   let processedFileContents = fs
     .writeFile(pathOfTheTestfile, minifiedContents)
-    .then(() => execa("./roast", [tempFolder, ".eslintrc.json"]))
+    .then(() => execa(roastExe, [tempFolder, ".eslintrc.json"]))
     .then(() => fs.readFile(pathOfTheTestfile, "utf8"))
     .then((received) =>
       // execaCommand(`rm -rf ${path.join(path.resolve(), "../temp")}`)
@@ -182,7 +183,7 @@ test("04 - topmost level is array", async () => {
         2
       )
     )
-    .then(() => execa("./roast", [tempFolder, "sortme.json"]))
+    .then(() => execa(roastExe, [tempFolder, "sortme.json"]))
     .then(() => fs.readFile(pathOfTheTestfile, "utf8"))
     .then((received) =>
       // execaCommand(`rm -rf ${path.join(path.resolve(), "../temp")}`)
@@ -214,7 +215,7 @@ test("05 - no files found in the given directory", async () => {
   // const tempFolder = "temp";
 
   // call execa on that empty folder
-  let stdOutContents = await execa("./roast", [tempFolder]);
+  let stdOutContents = await execa(roastExe, [tempFolder]);
   // CLI will complain no files could be found
   match(
     stdOutContents.stderr,
