@@ -150,34 +150,33 @@ fn sort_path(
         return None;
     }
 
-    let result = match read_sort(&path, use_spaces, sort_arrays, line_ending, indents) {
+    let file: String = match read_file(path) {
+        Ok(s) => s,
+        Err(e) => {
+            return Some(SortResult {
+                path: path.as_path().into(),
+                error: Some(e),
+            })
+        }
+    };
+    let result = match sort(&file, use_spaces, sort_arrays, line_ending, indents) {
         Ok(json_string) => {
             if !dry_run {
                 match write_out(&path, json_string, line_ending) {
-                    Ok(_) => SortResult {
-                        path: path.as_path().into(),
-                        error: None,
-                    },
-                    Err(error) => SortResult {
-                        path: path.as_path().into(),
-                        error: Some(error),
-                    },
+                    Ok(_) => None,
+                    Err(error) => Some(error),
                 }
+            } else {
+                None
             }
-            else {
-                SortResult {
-                    path: path.as_path().into(),
-                    error: None,
-                }
-            }
-        },
-        Err(error) => SortResult {
-            path: path.as_path().into(),
-            error: Some(error),
-        },
+        }
+        Err(error) => Some(error),
     };
 
-    Some(result)
+    Some(SortResult {
+        path: path.as_path().into(),
+        error: result,
+    })
 }
 
 fn is_already_sorted(path: &Path, results: &Vec<SortResult>) -> bool {
@@ -296,23 +295,17 @@ fn sort_json_value(head: &mut Value, sort_arrays: bool) -> &mut Value {
     head
 }
 
-fn read_sort(
-    path: &Path,
+fn sort(
+    input: &String,
     use_spaces: bool,
     sort_arrays: bool,
     line_ending: &LineEnding,
     indents: usize,
 ) -> Result<String, JsonError> {
-    let file: String = read_file(path)?;
-    let mut json: Value = match serde_json::from_str(&file) {
+    let mut json: Value = match serde_json::from_str(input) {
         Ok(v) => v,
         Err(error) => {
-            let filename = path.as_os_str().to_str().unwrap_or(INVALID_PATH);
-            log::debug!(
-                "Failed to parse json file. filename: {}, error: {}",
-                filename,
-                error
-            );
+            log::debug!("Failed to parse json file. error: {}", error);
             return Err(JsonError::ParseError);
         }
     };
@@ -321,20 +314,19 @@ fn read_sort(
 
     let desired_line_ending: LineEnding = match line_ending {
         // if not specified, use original
-        LineEnding::SystemDefault => LineEnding::parse_str(&file),
+        LineEnding::SystemDefault => LineEnding::parse_str(input),
         // else use as configured
         _ => line_ending.clone(),
     };
 
     let whitespace_char = if use_spaces { ' ' } else { '\t' };
-    let json_string =
-        match serialize_json(&json, whitespace_char, indents, &desired_line_ending) {
-            Ok(s) => s,
-            Err(error) => {
-                log::debug!("Serialization error: {}", error);
-                return Err(JsonError::WriteError);
-            }
-        };
+    let json_string = match serialize_json(&json, whitespace_char, indents, &desired_line_ending) {
+        Ok(s) => s,
+        Err(error) => {
+            log::debug!("Serialization error: {}", error);
+            return Err(JsonError::WriteError);
+        }
+    };
 
     Ok(json_string)
 }
