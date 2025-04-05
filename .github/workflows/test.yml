@@ -49,10 +49,7 @@ jobs:
           args: --release --all-features
 
       - name: Copy executable to test dir
-        uses: canastro/copy-file-action@master
-        with:
-          source: target/release/roast
-          target: tests/roast
+        run: cp target/release/roast tests/roast
 
       - name: Install Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
