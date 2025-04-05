@@ -103,7 +103,10 @@ pub fn sort_files(
                     continue;
                 }
                 if dry_run {
-                    log::info!("{}", path_to_relative(&entry_path).unwrap_or(INVALID_PATH.into()))
+                    results.push(SortResult {
+                        path: entry_path.into(),
+                        error: None,
+                    });
                 } else {
                     match sort_and_save(&entry_path, use_spaces, sort_arrays, line_ending, indents)
                     {
@@ -131,7 +134,10 @@ pub fn sort_files(
             }
 
             if dry_run {
-                log::info!("{}", path_to_relative(&path).unwrap_or(INVALID_PATH.into()))
+                results.push(SortResult {
+                    path: path.as_path().into(),
+                    error: None,
+                });
             } else {
                 match sort_and_save(&path, use_spaces, sort_arrays, line_ending, indents) {
                     Ok(_) => results.push(SortResult {
