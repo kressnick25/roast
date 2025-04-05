@@ -23,14 +23,17 @@ jobs:
 
   test:
     name: Test Suite
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         node-version: [22.14.0]
-        os:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
+        platform:
+          - runner: ubuntu-latest
+            bin: roast
+          - runner: macos-latest
+            bin: roast
+          - runner: windows-latest
+            bin: roast.exe
+    runs-on: ${{ matrix.platform.runner }}
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
@@ -49,7 +52,7 @@ jobs:
           args: --release --all-features
 
       - name: Copy executable to test dir
-        run: cp target/release/roast tests/roast
+        run: cp target/release/${{ matrix.platform.bin }} tests/roast
 
       - name: Install Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
