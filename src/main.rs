@@ -1,10 +1,10 @@
 use clap::Parser;
 use colored::*;
 use git2::{Repository, Status};
-use log::{LevelFilter, Level, Metadata, Record};
-use std::{env, io};
+use log::{Level, LevelFilter, Metadata, Record};
 use std::fmt::Display;
 use std::path::PathBuf;
+use std::{env, io};
 
 mod formatter;
 mod lines;
@@ -27,7 +27,6 @@ static LOGGER: SimpleLogger = SimpleLogger;
 #[derive(Debug, Parser)]
 #[command(name = APP_NAME, version = APP_VERSION, author = APP_AUTHOR, about = APP_ABOUT)]
 struct Args {
-
     /// Also sort any arrays if they contain only string elements
     #[clap(long, short = 'a')]
     arrays: bool,
@@ -91,7 +90,7 @@ impl log::Log for SimpleLogger {
 
     fn log(&self, record: &Record) {
         if self.enabled(record.metadata()) {
-            match record.level() { 
+            match record.level() {
                 Level::Debug | Level::Trace => {
                     eprint!(
                         "{} - {}:{} - ",
@@ -99,10 +98,10 @@ impl log::Log for SimpleLogger {
                         record.file().unwrap_or("unknown_file"),
                         record.line().unwrap_or(0)
                     );
-                },
+                }
                 Level::Info => eprintln!("{}", record.args()),
                 Level::Warn => eprintln!("{}", format!("{}", record.args()).yellow()),
-                Level::Error => eprintln!("{}", format!("{}", record.args()).red())
+                Level::Error => eprintln!("{}", format!("{}", record.args()).red()),
             }
         }
     }
@@ -115,16 +114,15 @@ fn get_git_modified() -> Result<Vec<PathBuf>, git2::Error> {
     let repo = Repository::open(dir)?;
     let statuses = repo.statuses(None)?;
 
-    let res = statuses.iter()
-            .filter(|se| { 
-                let s: Status = se.status();
-                // index = staged, wt + not new = tracked, unstaged
-                s.is_wt_modified() || s.is_wt_renamed() || s.is_wt_typechange()
-            })
-            .filter_map(|s| {
-                s.path().and_then(|path| Some(PathBuf::from(path)))
-            })
-            .collect();
+    let res = statuses
+        .iter()
+        .filter(|se| {
+            let s: Status = se.status();
+            // index = staged, wt + not new = tracked, unstaged
+            s.is_wt_modified() || s.is_wt_renamed() || s.is_wt_typechange()
+        })
+        .filter_map(|s| s.path().and_then(|path| Some(PathBuf::from(path))))
+        .collect();
 
     Ok(res)
 }
@@ -139,9 +137,14 @@ fn sort_result_output(results: Vec<SortResult>) -> String {
         let fail = format!("{} files could not be sorted", fail_count).red();
         out = format!("{}\n{}", ok, fail).bold().to_string();
     } else if ok_count == 0 {
-        out = "The inputs don't lead to any json files! Exiting.".red().to_string();
+        out = "The inputs don't lead to any json files! Exiting."
+            .red()
+            .to_string();
     } else {
-        out = format!("{} files sorted", ok_count).green().bold().to_string();
+        out = format!("{} files sorted", ok_count)
+            .green()
+            .bold()
+            .to_string();
     }
 
     out
@@ -187,7 +190,10 @@ fn main() {
     }
 
     if files.is_empty() {
-        log::info!("{}", "The inputs don't lead to any json files! Exiting.".red());
+        log::info!(
+            "{}",
+            "The inputs don't lead to any json files! Exiting.".red()
+        );
         std::process::exit(1);
     }
 
@@ -216,7 +222,11 @@ fn main() {
 
     log::info!("");
     if args.dry {
-        log::info!("{}\n{}", "--- DRY RUN ---".yellow().bold(), sort_result_output(results));
+        log::info!(
+            "{}\n{}",
+            "--- DRY RUN ---".yellow().bold(),
+            sort_result_output(results)
+        );
     } else {
         log::info!("{}", sort_result_output(results))
     }

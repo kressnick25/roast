@@ -1,12 +1,12 @@
 use std::env;
 
 /// Character to use for newline
-/// 
+///
 /// # System Defaults
-/// 
+///
 /// * `unix` - LF '\n'
 /// * `windows` - CRLF '\r\n'
-/// 
+///
 /// Includes Mac OS CR, but SystemDefault will use LF on Mac OS by default
 #[derive(Clone, Debug)]
 pub enum LineEnding {
@@ -36,21 +36,18 @@ impl LineEnding {
             LineEnding::CR => "\r",
             LineEnding::LF => "\n",
             LineEnding::CRLF => "\r\n",
-            LineEnding::SystemDefault => self.get_default_str()
+            LineEnding::SystemDefault => self.get_default_str(),
         }
     }
 
     pub fn parse_str(s: &str) -> LineEnding {
         if let Some(_) = s.find(LineEnding::CRLF.as_str()) {
             LineEnding::CRLF
-        }
-        else if let Some(_) = s.find(LineEnding::LF.as_str()) {
+        } else if let Some(_) = s.find(LineEnding::LF.as_str()) {
             LineEnding::LF
-        }
-        else if let Some(_) = s.find(LineEnding::CR.as_str()) {
+        } else if let Some(_) = s.find(LineEnding::CR.as_str()) {
             LineEnding::CR
-        }
-        else {
+        } else {
             LineEnding::SystemDefault
         }
     }
