@@ -5,13 +5,12 @@ use serde_json::{Serializer, Value};
 use std::env;
 use std::error::Error;
 use std::fmt::Display;
-use std::fs;
+use std::fs::{self};
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 pub use crate::formatter::LineFormatter;
 pub use crate::lines::LineEnding;
-
 
 const INVALID_PATH: &'static str = "INVALID_PATH";
 const IGNORED_FILES: &'static [&str] = &[
@@ -38,10 +37,10 @@ pub enum JsonError {
 }
 
 /// Result of a sort operation for a JSON file
-/// 
+///
 ///  * `path` - [Path] of the file that was sorted
-///  * `error` - [JsonError] if the sort operation failed 
-/// 
+///  * `error` - [JsonError] if the sort operation failed
+///
 pub struct SortResult {
     path: Box<Path>,
     error: Option<JsonError>,
@@ -60,14 +59,16 @@ impl<'a> Display for SortResult {
         if self.success() {
             write!(f, "{} - {}", path_str, "OK".green().bold())
         } else {
-            let err_msg = format!("{:?}", self.error.as_ref().expect("Not possible")).red().bold();
+            let err_msg = format!("{:?}", self.error.as_ref().expect("Not possible"))
+                .red()
+                .bold();
             write!(f, "{} - {}", path_str, err_msg)
         }
     }
 }
 
 /// Read a list of JSON files, sort the contents of each and save the output to disk.
-/// 
+///
 /// ## Arguments
 ///
 /// * `files` - a list of relative or absolute Paths to sort
@@ -76,9 +77,9 @@ impl<'a> Display for SortResult {
 /// * `sort_arrays` - enable to sort arrays. Only sorts arrays containing all string types
 /// * `indents` - number of whitespace indents to use
 /// * `dry_run` - print files that would be sorted, but do not modify
-/// 
+///
 /// Ignores files that should not be modified. See [IGNORED_FILES]
-/// 
+///
 #[inline]
 pub fn sort_files(
     files: &Vec<PathBuf>,
@@ -97,62 +98,86 @@ pub fn sort_files(
                 .filter_map(|e| e.ok())
                 .filter(|e| e.path().is_file())
             {
-                let entry_path = entry.path();
-                if is_ignored(&entry_path) || is_already_sorted(&entry_path, &results) {
-                    log::debug!("Ignored: {:?}", entry_path.to_str());
-                    continue;
-                }
-                if dry_run {
-                    results.push(SortResult {
-                        path: entry_path.into(),
-                        error: None,
-                    });
-                } else {
-                    match sort_and_save(&entry_path, use_spaces, sort_arrays, line_ending, indents)
-                    {
-                        Ok(_) => results.push(SortResult {
-                            path: entry_path.into(),
-                            error: None,
-                        }),
-                        Err(error) => results.push(SortResult {
-                            path: entry_path.into(),
-                            error: Some(error),
-                        }),
-                    }
+                let entry_path = entry.path().to_path_buf();
+                match sort_path(
+                    &entry_path,
+                    dry_run,
+                    line_ending,
+                    use_spaces,
+                    sort_arrays,
+                    indents,
+                    &results,
+                ) {
+                    Some(res) => results.push(res),
+                    _ => (),
                 }
             }
         } else {
-            if !path.exists() {
-                results.push(SortResult {
-                    path: path.as_path().into(),
-                    error: Some(JsonError::NotFound),
-                });
-            }
-            if is_ignored(&path) || is_already_sorted(&path, &results) {
-                log::debug!("Ignored: {:?}", path.to_str());
-                continue;
-            }
-
-            if dry_run {
-                results.push(SortResult {
-                    path: path.as_path().into(),
-                    error: None,
-                });
-            } else {
-                match sort_and_save(&path, use_spaces, sort_arrays, line_ending, indents) {
-                    Ok(_) => results.push(SortResult {
-                        path: path.as_path().into(),
-                        error: None,
-                    }),
-                    Err(error) => results.push(SortResult {
-                        path: path.as_path().into(),
-                        error: Some(error),
-                    }),
-                }
+            match sort_path(
+                path,
+                dry_run,
+                line_ending,
+                use_spaces,
+                sort_arrays,
+                indents,
+                &results,
+            ) {
+                Some(res) => results.push(res),
+                _ => (),
             }
         }
     }
     results
+}
+
+fn sort_path(
+    path: &PathBuf,
+    dry_run: bool,
+    line_ending: &LineEnding,
+    use_spaces: bool,
+    sort_arrays: bool,
+    indents: usize,
+    results: &Vec<SortResult>,
+) -> Option<SortResult> {
+    if !path.exists() {
+        return Some(SortResult {
+            path: path.as_path().into(),
+            error: Some(JsonError::NotFound),
+        });
+    }
+    if is_ignored(&path) || is_already_sorted(&path, &results) {
+        log::debug!("Ignored: {:?}", path.to_str());
+        return None;
+    }
+
+    let result = match read_sort(&path, use_spaces, sort_arrays, line_ending, indents) {
+        Ok(json_string) => {
+            if !dry_run {
+                match write_out(&path, json_string, line_ending) {
+                    Ok(_) => SortResult {
+                        path: path.as_path().into(),
+                        error: None,
+                    },
+                    Err(error) => SortResult {
+                        path: path.as_path().into(),
+                        error: Some(error),
+                    },
+                }
+            }
+            else {
+                SortResult {
+                    path: path.as_path().into(),
+                    error: None,
+                }
+            }
+        },
+        Err(error) => SortResult {
+            path: path.as_path().into(),
+            error: Some(error),
+        },
+    };
+
+    Some(result)
 }
 
 fn is_already_sorted(path: &Path, results: &Vec<SortResult>) -> bool {
@@ -190,7 +215,7 @@ fn path_to_relative(path: &Path) -> Result<String, Box<dyn Error>> {
     let re = Regex::new(r"^\./")?;
     let out = match path.to_str() {
         Some(s) => s,
-        None => return Err("Path is not valid unicode")?
+        None => return Err("Path is not valid unicode")?,
     };
     let out = re.replace_all(out, "");
 
@@ -211,7 +236,6 @@ fn read_file(path: &Path) -> Result<String, JsonError> {
         }
     };
 
-    
     Ok(file)
 }
 
@@ -219,7 +243,7 @@ fn serialize_json(
     json: &Value,
     whitespace_char: char,
     indents: usize,
-    line_ending: &LineEnding
+    line_ending: &LineEnding,
 ) -> Result<String, Box<dyn Error>> {
     let mut buf = Vec::new();
 
@@ -272,13 +296,13 @@ fn sort_json_value(head: &mut Value, sort_arrays: bool) -> &mut Value {
     head
 }
 
-fn sort_and_save(
+fn read_sort(
     path: &Path,
     use_spaces: bool,
     sort_arrays: bool,
     line_ending: &LineEnding,
     indents: usize,
-) -> Result<(), JsonError> {
+) -> Result<String, JsonError> {
     let file: String = read_file(path)?;
     let mut json: Value = match serde_json::from_str(&file) {
         Ok(v) => v,
@@ -293,26 +317,35 @@ fn sort_and_save(
         }
     };
 
+    sort_json_value(&mut json, sort_arrays);
+
     let desired_line_ending: LineEnding = match line_ending {
         // if not specified, use original
         LineEnding::SystemDefault => LineEnding::parse_str(&file),
         // else use as configured
-        _ => line_ending.clone()
+        _ => line_ending.clone(),
     };
-
-    sort_json_value(&mut json, sort_arrays);
 
     let whitespace_char = if use_spaces { ' ' } else { '\t' };
-    let mut json_string = match serialize_json(&json, whitespace_char, indents, &desired_line_ending) {
-        Ok(s) => s,
-        Err(error) => {
-            log::debug!("Serialization error: {}", error);
-            return Err(JsonError::WriteError);
-        }
-    };
-    
+    let json_string =
+        match serialize_json(&json, whitespace_char, indents, &desired_line_ending) {
+            Ok(s) => s,
+            Err(error) => {
+                log::debug!("Serialization error: {}", error);
+                return Err(JsonError::WriteError);
+            }
+        };
+
+    Ok(json_string)
+}
+
+fn write_out(
+    path: &Path,
+    mut json_string: String,
+    line_ending: &LineEnding,
+) -> Result<(), JsonError> {
     // End file with line ending
-    json_string += desired_line_ending.as_str();
+    json_string += line_ending.as_str();
 
     // TODO optimize this by sorting all the file contents in memory first, then saving
     match fs::write(path, json_string) {
