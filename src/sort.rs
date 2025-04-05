@@ -159,7 +159,7 @@ fn sort_path(
             })
         }
     };
-    let result = match sort(&file, use_spaces, sort_arrays, line_ending, indents) {
+    let result = match sort_json_string(&file, use_spaces, sort_arrays, line_ending, indents) {
         Ok(json_string) => {
             if !dry_run {
                 match write_out(&path, json_string, line_ending) {
@@ -295,7 +295,7 @@ fn sort_json_value(head: &mut Value, sort_arrays: bool) -> &mut Value {
     head
 }
 
-fn sort(
+fn sort_json_string(
     input: &String,
     use_spaces: bool,
     sort_arrays: bool,

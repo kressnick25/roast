@@ -1,13 +1,13 @@
+pub use crate::lines::LineEnding;
 use serde_json::ser::Formatter;
 use std::io;
-pub use crate::lines::LineEnding;
 /// This structure pretty prints a JSON value to make it human readable.
 #[derive(Clone, Debug)]
 pub struct LineFormatter<'a> {
     current_indent: usize,
     has_value: bool,
     indent: &'a [u8],
-    line_ending: LineEnding
+    line_ending: LineEnding,
 }
 
 impl<'a> LineFormatter<'a> {
@@ -16,7 +16,7 @@ impl<'a> LineFormatter<'a> {
             current_indent: 0,
             has_value: false,
             indent,
-            line_ending
+            line_ending,
         }
     }
 }
@@ -124,13 +124,12 @@ impl<'a> Formatter for LineFormatter<'a> {
 }
 
 fn json_ending(first: bool, line_ending: &LineEnding) -> String {
-    if first { 
+    if first {
         line_ending.as_str().to_owned()
     } else {
         format!(",{}", line_ending.as_str()).to_string()
-      }
+    }
 }
-
 
 fn indent<W>(wr: &mut W, n: usize, s: &[u8]) -> io::Result<()>
 where
@@ -142,3 +141,4 @@ where
 
     Ok(())
 }
+
