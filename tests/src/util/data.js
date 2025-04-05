@@ -18,6 +18,8 @@
 // File contents:
 // -----------------------------------------------------------------------------
 
+export const roastExe = process.env.ROAST_EXE || './roast'
+ 
 export const testFileContents = [
   {
     // test1/file1.json

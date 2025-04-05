@@ -65,4 +65,6 @@ jobs:
 
       - name: Run test suite
         working-directory: ./tests
-        run: npm run test
+        run: |
+          export ROAST_EXE=./${{ matrix.platform.bin }}
+          npm run test

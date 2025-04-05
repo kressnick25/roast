@@ -15,6 +15,7 @@ import {
   sortedTabbedTestFileContents,
   // minifiedContents,
   // prettifiedContents,
+  roastExe
 } from "./util/data.js";
 
 // -----------------------------------------------------------------------------
@@ -40,7 +41,7 @@ test("01 - sort, -t (tabs) mode", async () => {
       )
   )
     .then(
-      () => execa("./roast", [tempFolder]) // all test files have been written successfully, let's process them with our CLI
+      () => execa(roastExe, [tempFolder]) // all test files have been written successfully, let's process them with our CLI
     )
     .then(() =>
       pMap(testFilePaths, (oneOfPaths) =>

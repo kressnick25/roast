@@ -15,6 +15,7 @@ import { temporaryDirectory } from "tempy";
 //   minifiedContents,
 //   prettifiedContents,
 // } from "./util/data.js";
+import { roastExe } from "./util/data.js";
 
 // -----------------------------------------------------------------------------
 
@@ -29,7 +30,7 @@ test("01 - indentationCount set to 3, spaces", async () => {
 
   fs.writeFileSync(pathOfTestFile, originalContents);
 
-  await execa("./roast", ["-i", "3", "-s", tempFolder]).catch((err) => {
+  await execa(roastExe, ["-i", "3", "-s", tempFolder]).catch((err) => {
     throw new Error(err);
   });
 
@@ -51,7 +52,7 @@ test("02 - indentationCount set to 3, tabs", async () => {
 
   fs.writeFileSync(pathOfTestFile, originalContents);
 
-  await execa("./roast", ["-i", "3", tempFolder]).catch((err) => {
+  await execa(roastExe, ["-i", "3", tempFolder]).catch((err) => {
     throw new Error(err);
   });
 
@@ -73,7 +74,7 @@ test("03 - indentationCount set to 3, tabs, array", async () => {
 
   fs.writeFileSync(pathOfTestFile, originalContents);
 
-  await execa("./roast", [tempFolder, "-i", "3", "-a"]).catch((err) => {
+  await execa(roastExe, [tempFolder, "-i", "3", "-a"]).catch((err) => {
     throw new Error(err);
   });
 
