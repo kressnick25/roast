@@ -30,10 +30,13 @@ jobs:
         platform:
           - runner: ubuntu-latest
             bin: roast
+            env_set: export ROAST_EXE=./roast
           - runner: macos-latest
             bin: roast
+            env_set: export ROAST_EXE=./roast
           - runner: windows-latest
             bin: roast.exe
+            env_set: $env:ROAST_EXE='./roast.exe'
     runs-on: ${{ matrix.platform.runner }}
     steps:
       - name: Checkout sources
@@ -53,7 +56,7 @@ jobs:
           args: --release --all-features
 
       - name: Copy executable to test dir
-        run: cp target/release/${{ matrix.platform.bin }} tests/roast
+        run: cp target/release/${{ matrix.platform.bin }} tests/${{ matrix.platform.bin }}
 
       - name: Install Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
@@ -67,5 +70,5 @@ jobs:
       - name: Run test suite
         working-directory: ./tests
         run: |
-          export ROAST_EXE=./${{ matrix.platform.bin }}
+          ${{ matrix.platform.env_set }}
           npm run test
