@@ -6,6 +6,7 @@ import { equal, is, ok, throws, type, not, match } from "uvu/assert";
 import { execa, execaCommand } from "execa";
 import { temporaryDirectory } from "tempy";
 import pMap from "p-map";
+import { EOL } from "node:os";
 
 // import pack from "../package.json";
 import {
@@ -47,17 +48,17 @@ test("01 - sort, -s (silent) mode", async () => {
     .then(() =>
       fs.writeFile(
         path.join(tempFolder, "test1/.something.yml"), // - dotfile in yml with yml extension
-        "foo:\n  bar"
+        `foo:${EOL}  bar`
       )
     )
     .then(() =>
       fs.writeFile(
         path.join(tempFolder, "test1/.somethinginyml"), // - dotfile in yml without yml extension
-        "foo:\n  bar"
+        `foo:${EOL}  bar`
       )
     )
     .then(() =>
-      fs.writeFile(path.join(tempFolder, "test1/broken.json"), '{a": "b"}\n')
+      fs.writeFile(path.join(tempFolder, "test1/broken.json"), `{a": "b"}${EOL}`)
     )
     .then(() => execa("./roast", [tempFolder, "--silent"]))
     .then(() => {

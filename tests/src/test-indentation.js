@@ -16,12 +16,13 @@ import { temporaryDirectory } from "tempy";
 //   prettifiedContents,
 // } from "./util/data.js";
 import { roastExe } from "./util/data.js";
+import { EOL } from "node:os";
 
 // -----------------------------------------------------------------------------
 
 test("01 - indentationCount set to 3, spaces", async () => {
-  let originalContents = '{\n  "z": 1,\n  "a": 2\n}\n';
-  let sortedContents = '{\n   "a": 2,\n   "z": 1\n}\n';
+  let originalContents = `{${EOL}  "z": 1,${EOL}  "a": 2${EOL}}${EOL}`;
+  let sortedContents = `{${EOL}   "a": 2,${EOL}   "z": 1${EOL}}${EOL}`;
 
   let tempFolder = temporaryDirectory();
   // const tempFolder = "temp";
@@ -42,8 +43,8 @@ test("01 - indentationCount set to 3, spaces", async () => {
 });
 
 test("02 - indentationCount set to 3, tabs", async () => {
-  let originalContents = '{\n  "z": 1,\n  "a": 2\n}\n';
-  let sortedContents = '{\n\t\t\t"a": 2,\n\t\t\t"z": 1\n}\n';
+  let originalContents = `{${EOL}  "z": 1,${EOL}  "a": 2${EOL}}${EOL}`;
+  let sortedContents = `{${EOL}\t\t\t"a": 2,${EOL}\t\t\t"z": 1${EOL}}${EOL}`;
 
   let tempFolder = temporaryDirectory();
   // const tempFolder = "temp";
@@ -64,8 +65,8 @@ test("02 - indentationCount set to 3, tabs", async () => {
 });
 
 test("03 - indentationCount set to 3, tabs, array", async () => {
-  let originalContents = '[\n  "z",\n  "a"\n]\n';
-  let sortedContents = '[\n\t\t\t"a",\n\t\t\t"z"\n]\n';
+  let originalContents = `[${EOL}  "z",${EOL}  "a"${EOL}]${EOL}`;
+  let sortedContents = `[${EOL}\t\t\t"a",${EOL}\t\t\t"z"${EOL}]${EOL}`;
 
   let tempFolder = temporaryDirectory();
   // const tempFolder = "temp";

@@ -17,6 +17,7 @@ import { temporaryDirectory } from "tempy";
 //   prettifiedContents,
 // } from "./util/data.js";
 import { roastExe } from "./util/data.js";
+import { EOL } from "node:os";
 
 // -----------------------------------------------------------------------------
 
@@ -67,7 +68,7 @@ test("01 - array, LF line endings, preserve original", async () => {
     "c": "d",
     "p": "r"
   }
-]\n`.replace(/\n/g, "\n"),
+]${EOL}`,
     "01.01"
   );
 });
