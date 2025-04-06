@@ -6,14 +6,14 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "4.3.2", features = ["derive"] }
-colored = "2.0.0"
+clap = { version = "4.5.35", features = ["derive"] }
+colored = "3.0.0"
 git2 = "0.18.3"
-log = "0.4.18"
-regex = "1.8.4"
+log = "0.4.27"
+regex = "1.11.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-walkdir = "2.3.3"
+walkdir = "2.5.0"
 
 [dev-dependencies]
 criterion = "0.3"
