@@ -42,7 +42,7 @@ jobs:
           targets: ${{ matrix.platform.target }}
 
       - name: Build binary
-        shell: ${{ matrix.platform.shell }}
+        # shell picked implicitly from runs-on
         run: ${{ matrix.platform.script }}
      
       - uses: fregante/setup-git-user@v2
