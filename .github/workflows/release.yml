@@ -38,8 +38,6 @@ jobs:
 
       - name: cache
         uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: ${{ runner.os }}
 
       - name: Build binary
         # shell picked implicitly from runs-on
