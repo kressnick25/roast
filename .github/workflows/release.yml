@@ -12,7 +12,7 @@ jobs:
 
   release:
     name: Release - ${{ matrix.platform.os_name }}
-      # TODO uncomment needs: test
+    needs: test
     strategy:
       matrix:
         platform:
@@ -33,10 +33,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install toolchain 
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.platform.target }}
+      - name: rustup
+        run: rustup toolchain install ${{ matrix.platform.target }} --profile minimal
+
+      - name: cache
+        uses: Swatinem/rust-cache@v2
 
       - name: Build binary
         # shell picked implicitly from runs-on
