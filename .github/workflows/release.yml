@@ -18,18 +18,15 @@ jobs:
         platform:
           - os_name: Linux-x86_64
             os: ubuntu-latest
-            script: build/build-nix.sh
-            shell: bash
+            script: ./build/build-nix.sh
 
           - os_name: Windows-x86_64
             os: windows-latest
-            script: build/build-win.ps1
-            shell: powershell
+            script: ./build/build-win.ps1
 
           - os_name: macOS-arm64
             os: macos-latest
-            script: build/build-mac.sh
-            shell: bash
+            script: ./build/build-mac.sh
 
     runs-on: ${{ matrix.platform.os }}
     steps:
