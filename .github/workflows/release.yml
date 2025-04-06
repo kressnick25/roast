@@ -6,8 +6,13 @@ on:
       - main
 
 jobs:
+  test:
+    uses: kressnick25/roast/.github/workflows/test.yml@main
+    secrets: inherit
+
   release:
     name: Release - ${{ matrix.platform.os_name }}
+    needs: test
     strategy:
       matrix:
         platform:
@@ -84,7 +89,6 @@ jobs:
         run: |
           git tag --force -a latest -m "Latest release" ${GITHUB_SHA}
           git push --force origin latest
-        
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v1
