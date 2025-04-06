@@ -8,6 +8,16 @@ roast is an implementation of [codesen/jsonsort-cli](https://github.com/codsen/c
 
 Download the latest build for your platform from [Releases](https://github.com/kressnick25/roast/releases). Simply drop the executable into a location in your PATH.
 
+### MacOS
+
+MacOS Gatekeeper will prevent you from running the binary from the _Releases_ page. This is because I don't have $99 a year to throw away on the Apple Developer Program for my cli tool with no users.
+
+Either trust me and [ignore the warning](https://support.apple.com/en-au/guide/mac-help/mh40616/mac)
+or clone the project and build it yourself (rust toolchain required):
+```sh
+cargo build
+```
+
 ## Usage
 
 ```sh
