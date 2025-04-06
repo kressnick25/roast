@@ -16,6 +16,7 @@ import { temporaryDirectory } from "tempy";
 //   prettifiedContents,
 // } from "./util/data.js";
 import { roastExe } from "./util/data.js";
+import { EOL } from "node:os";
 
 // -----------------------------------------------------------------------------
 
@@ -46,8 +47,8 @@ test("01 - only node_modules with one file, flag disabled", async () => {
 });
 
 test("02- files inside and outside node_modules, flag disabled", async () => {
-  let originalContents = '{\n  "z": 1,\n  "a": 2\n}\n';
-  let sortedContents = '{\n  "a": 2,\n  "z": 1\n}\n';
+  let originalContents = `{${EOL}  "z": 1,${EOL}  "a": 2${EOL}}${EOL}`;
+  let sortedContents = `{${EOL}  "a": 2,${EOL}  "z": 1${EOL}}${EOL}`;
 
   let tempFolder = temporaryDirectory();
   // const tempFolder = "temp";

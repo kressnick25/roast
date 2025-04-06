@@ -8,6 +8,7 @@ import { temporaryDirectory } from "tempy";
 // import pMap from "p-map";
 // import pack from "../package.json";
 import { roastExe } from "./util/data.js";
+import { EOL } from "node:os";
 
 // -----------------------------------------------------------------------------
 
@@ -41,7 +42,7 @@ test("01 - when asked, sorts arrays which contain only strings", async () => {
   "M",
   "z",
   "Z"
-]\n`,
+]${EOL}`,
     "01.01"
   );
 });
@@ -66,7 +67,7 @@ test("02 - when not asked, does not sort arrays which contain only strings", asy
     });
   equal(
     await processedFileContents,
-    `${JSON.stringify(sourceArr, null, 2)}\n`,
+    `${JSON.stringify(sourceArr, null, 2)}${EOL}`,
     "02.01"
   );
 });
@@ -120,7 +121,7 @@ test("03 - array in deeper levels sorted (upon request)", async () => {
       ]
     ]
   }
-}\n`,
+}${EOL}`,
     "03.01"
   );
 });

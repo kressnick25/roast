@@ -6,6 +6,7 @@ import { equal, is, ok, throws, type, not, match } from "uvu/assert";
 import { execa, execaCommand } from "execa";
 import { temporaryDirectory } from "tempy";
 import pMap from "p-map";
+import { EOL } from "node:os";
 
 // import pack from "../package.json";
 import {
@@ -156,7 +157,8 @@ test("03 - fixes minified dotfiles in JSON format", async () => {
       throw new Error(err);
     });
 
-  equal(await processedFileContents, prettifiedContents, "03.01");
+  let expectedContents = prettifiedContents.replaceAll('\n', EOL)
+  equal(await processedFileContents, expectedContents, "03.01");
 });
 
 test("04 - topmost level is array", async () => {
@@ -204,7 +206,7 @@ test("04 - topmost level is array", async () => {
 \t\t"c": "d",
 \t\t"p": "r"
 \t}
-]\n`,
+]${EOL}`,
     "04.01"
   );
 });
