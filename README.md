@@ -1,5 +1,5 @@
-
 # roast :fire:
+
 Command line app to deep sort JSON files.
 
 roast is an implementation of [codesen/jsonsort-cli](https://github.com/codsen/codsen/tree/main/packages/json-sort-cli) written in Rust using [serde](https://github.com/serde-rs/json).
