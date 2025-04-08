@@ -1,3 +1,6 @@
+// Allow unused code, clippy thinks we aren't using vars imported from sort.rs
+#![allow(dead_code,unused_imports)]
+
 use std::path::PathBuf;
 
 use criterion::BenchmarkId;
@@ -17,7 +20,7 @@ mod formatter;
 const SAMPLE_SIZE: usize = 10;
 
 fn sort_fn(c: &mut Criterion) {
-    let files = vec![
+    let files = [
         "a_1mb",
         "b_5mb",
         "c_10mb",
@@ -38,7 +41,7 @@ fn sort_fn(c: &mut Criterion) {
                     // Fn being benchmarked
                     sort_files(
                         &black_box(vec![path.to_owned()]), 
-                        black_box(&LineEnding::LF), 
+                        black_box(&LineEnding::Lf), 
                         black_box(false),
                         black_box(false),
                         black_box(1),
@@ -63,7 +66,7 @@ fn sort_arrays(c: &mut Criterion) {
             // Fn being benchmarked
             sort_files(
                 &files, 
-                black_box(&LineEnding::LF), 
+                black_box(&LineEnding::Lf), 
                 black_box(false),
                 black_box(false),
                 black_box(1),
@@ -77,7 +80,7 @@ fn sort_arrays(c: &mut Criterion) {
             // Fn being benchmarked
             sort_files(
                 &files, 
-                black_box(&LineEnding::LF), 
+                black_box(&LineEnding::Lf), 
                 black_box(false),
                 black_box(true),
                 black_box(1),

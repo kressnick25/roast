@@ -32,8 +32,8 @@ fn default_sort_directory() -> Result<(), String> {
 
     for (i, f) in TEST_FILE_PATHS.iter().enumerate() {
         let status_line = match f.contains("not_json") {
-            true => format!("{} - ParseError", f.replace("/", &format!("{}", std::path::MAIN_SEPARATOR).as_str())),
-            false => format!("{} - OK", f.replace("/", &format!("{}", std::path::MAIN_SEPARATOR).as_str())),
+            true => format!("{} - ParseError", f.replace("/", format!("{}", std::path::MAIN_SEPARATOR).as_str())),
+            false => format!("{} - OK", f.replace("/", format!("{}", std::path::MAIN_SEPARATOR).as_str())),
         };
         assert_contains!(stderr, &status_line);
 
@@ -48,7 +48,7 @@ fn default_sort_directory() -> Result<(), String> {
     Ok(())
 }
 
-static TEST_FILE_PATHS: &'static [&'static str] = &[
+static TEST_FILE_PATHS: &[&str] = &[
     "test1/file1.json",
     "test1/.sneakyrc",
     "test1/folder1/file3.json",
@@ -59,7 +59,7 @@ static TEST_FILE_PATHS: &'static [&'static str] = &[
     "not_json.yml"
 ];
 
-static TEST_FILES: &'static [&'static str] = &[
+static TEST_FILES: &[&str] = &[
     // test1/file1.json
     r#"{
     "b": "bbb1", 
@@ -105,7 +105,7 @@ static TEST_FILES: &'static [&'static str] = &[
     "a: value",
 ];
 
-static SORTED_FILES: &'static [&'static str] = &[
+static SORTED_FILES: &[&str] = &[
     // test1/file1.json
     r#"{
   "a": "aaa1",
