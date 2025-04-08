@@ -137,7 +137,7 @@ fn sort_path(
     let result = match sort_json_string(&file, use_spaces, sort_arrays, line_ending, indents) {
         Ok(json_string) => {
             if !dry_run {
-                match write_out(&path, json_string, line_ending) {
+                match write_out(&path, json_string) {
                     Ok(_) => None,
                     Err(error) => Some(error),
                 }
@@ -284,7 +284,7 @@ fn sort_json_string(
     };
 
     let whitespace_char = if use_spaces { ' ' } else { '\t' };
-    let json_string = match serialize_json(&json, whitespace_char, indents, &desired_line_ending) {
+    let mut json_string = match serialize_json(&json, whitespace_char, indents, &desired_line_ending) {
         Ok(s) => s,
         Err(error) => {
             log::debug!("Serialization error: {}", error);
@@ -292,17 +292,16 @@ fn sort_json_string(
         }
     };
 
+    // End file with line ending
+    json_string += line_ending.as_str();
+
     Ok(json_string)
 }
 
 fn write_out(
     path: &Path,
-    mut json_string: String,
-    line_ending: &LineEnding,
+    json_string: String,
 ) -> Result<(), JsonError> {
-    // End file with line ending
-    json_string += line_ending.as_str();
-
     // TODO optimize this by sorting all the file contents in memory first, then saving
     match fs::write(path, json_string) {
         Ok(()) => (),
