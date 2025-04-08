@@ -90,43 +90,23 @@ pub fn sort_files(
     dry_run: bool,
 ) -> Vec<SortResult> {
     let mut results: Vec<SortResult> = vec![];
-    for path in files {
-        if path.is_dir() {
-            for entry in WalkDir::new(path)
-                .follow_links(true)
-                .into_iter()
-                .filter_map(|e| e.ok())
-                .filter(|e| e.path().is_file())
-            {
-                let entry_path = entry.path().to_path_buf();
-                match sort_path(
-                    &entry_path,
-                    dry_run,
-                    line_ending,
-                    use_spaces,
-                    sort_arrays,
-                    indents,
-                    &results,
-                ) {
-                    Some(res) => results.push(res),
-                    _ => (),
-                }
-            }
-        } else {
-            match sort_path(
-                path,
-                dry_run,
-                line_ending,
-                use_spaces,
-                sort_arrays,
-                indents,
-                &results,
-            ) {
-                Some(res) => results.push(res),
-                _ => (),
-            }
+
+    let all_paths = collect_sortables(files);
+
+    for path in all_paths {
+        match sort_path(
+            &path,
+            dry_run,
+            line_ending,
+            use_spaces,
+            sort_arrays,
+            indents,
+        ) {
+            Some(res) => results.push(res),
+            _ => (),
         }
     }
+
     results
 }
 
@@ -137,17 +117,12 @@ fn sort_path(
     use_spaces: bool,
     sort_arrays: bool,
     indents: usize,
-    results: &Vec<SortResult>,
 ) -> Option<SortResult> {
     if !path.exists() {
         return Some(SortResult {
             path: path.as_path().into(),
             error: Some(JsonError::NotFound),
         });
-    }
-    if is_ignored(&path) || is_already_sorted(&path, &results) {
-        log::debug!("Ignored: {:?}", path.to_str());
-        return None;
     }
 
     let file: String = match read_file(path) {
@@ -179,17 +154,6 @@ fn sort_path(
     })
 }
 
-fn is_already_sorted(path: &Path, results: &Vec<SortResult>) -> bool {
-    results.iter().any(|result| {
-        if !result.path.exists() || !path.exists() {
-            return false;
-        }
-        let result_str = result.path.canonicalize().unwrap_or_default();
-        let path_str = path.canonicalize().unwrap_or_default();
-        result_str == path_str
-    })
-}
-
 fn is_ignored(path: &Path) -> bool {
     if let Ok(full_path) = path.canonicalize() {
         if let Some(path_str) = full_path.to_str() {
@@ -214,7 +178,7 @@ fn path_to_relative(path: &Path) -> Result<String, Box<dyn Error>> {
     let re = Regex::new(r"^\./")?;
     let out = match path.to_str() {
         Some(s) => s,
-        None => return Err("Path is not valid unicode")?,
+        _ => return Err("Path is not valid unicode")?,
     };
     let out = re.replace_all(out, "");
 
@@ -349,4 +313,45 @@ fn write_out(
     };
 
     Ok(())
+}
+
+fn collect_sortables(roots: &Vec<PathBuf>) -> Vec<PathBuf> {
+    let mut results: Vec<PathBuf> = vec![];
+
+    for root in roots {
+        if root.is_dir() {
+            for entry in WalkDir::new(root)
+                .follow_links(true)
+                .into_iter()
+                .filter_map(|e| e.ok())
+                .filter(|e| e.path().is_file())
+            {
+                let entry_path = entry.path();
+                if is_ignored(entry_path) || path_in_vec(entry_path, &results) {
+                    log::debug!("Ignored: {:?}", entry_path.to_str());
+                    continue;
+                }
+                results.push(entry_path.to_path_buf());
+            }
+        } else {
+            if is_ignored(root) || path_in_vec(root, &results) {
+                log::debug!("Ignored: {:?}", root.to_str());
+                continue;
+            }
+            results.push(root.to_path_buf())
+        }
+    }
+
+    results
+}
+
+fn path_in_vec(path: &Path, list: &Vec<PathBuf>) -> bool {
+    list.iter().any(|result| {
+        if !result.exists() || !path.exists() {
+            return false;
+        }
+        let result_str = result.canonicalize().unwrap_or_default();
+        let path_str = path.canonicalize().unwrap_or_default();
+        result_str == path_str
+    })
 }
