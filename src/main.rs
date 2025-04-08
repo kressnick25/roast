@@ -14,7 +14,7 @@ use crate::lines::LineEnding;
 use crate::sort::{sort_files, SortResult};
 
 const APP_NAME: &str = "roast";
-const APP_VERSION: &str = "0.1.0";
+const APP_VERSION: &str = "0.3.0";
 const APP_AUTHOR: &str = "Nicholas Kress";
 const APP_ABOUT: &str = "Sort JSON files by key.
 Rust implementation of the npm package: json-sort-cli.";
@@ -153,6 +153,11 @@ fn sort_result_output(results: Vec<SortResult>) -> String {
 fn main() {
     // CLI args
     let args = Args::parse();
+
+    cli(args)
+}
+
+fn cli(args: Args) {
 
     // Configure logging
     let _ = log::set_logger(&LOGGER);
