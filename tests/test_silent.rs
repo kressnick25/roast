@@ -51,7 +51,7 @@ fn help_overrides_silent() -> Result<(), String> {
     let out = res.get_output();
     let stdout = String::from_utf8(out.stdout.clone()).unwrap();
 
-    assert_is_empty!(out.stdout);
+    assert_is_empty!(out.stderr);
     assert_contains!(stdout, &format!("Usage: {} [OPTIONS] [FILES]...", BINARY_NAME));
 
     Ok(())
