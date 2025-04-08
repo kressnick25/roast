@@ -206,7 +206,7 @@ test("04 - topmost level is array", async () => {
 \t\t"c": "d",
 \t\t"p": "r"
 \t}
-]$\n`,
+]\n`,
     "04.01"
   );
 });
