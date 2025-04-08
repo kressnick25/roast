@@ -12,8 +12,8 @@ use walkdir::WalkDir;
 pub use crate::formatter::LineFormatter;
 pub use crate::lines::LineEnding;
 
-const INVALID_PATH: &'static str = "INVALID_PATH";
-const IGNORED_FILES: &'static [&str] = &[
+const INVALID_PATH: &str = "INVALID_PATH";
+const IGNORED_FILES: &[&str] = &[
     "node_modules",
     "package.json",
     "package_lock.json",
@@ -52,7 +52,7 @@ impl SortResult {
     }
 }
 
-impl<'a> Display for SortResult {
+impl Display for SortResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let path_str = path_to_relative(&self.path).unwrap_or(INVALID_PATH.into());
 
@@ -82,7 +82,7 @@ impl<'a> Display for SortResult {
 ///
 #[inline]
 pub fn sort_files(
-    files: &Vec<PathBuf>,
+    files: &[PathBuf],
     line_ending: &LineEnding,
     use_spaces: bool,
     sort_arrays: bool,
@@ -94,16 +94,16 @@ pub fn sort_files(
     let all_paths = collect_sortables(files);
 
     for path in all_paths {
-        match sort_path(
+        let res = sort_path(
             &path,
             dry_run,
             line_ending,
             use_spaces,
             sort_arrays,
             indents,
-        ) {
-            Some(res) => results.push(res),
-            _ => (),
+        );
+        if let Some(r) = res {
+            results.push(r)
         }
     }
 
@@ -111,7 +111,7 @@ pub fn sort_files(
 }
 
 fn sort_path(
-    path: &PathBuf,
+    path: &Path,
     dry_run: bool,
     line_ending: &LineEnding,
     use_spaces: bool,
@@ -120,7 +120,7 @@ fn sort_path(
 ) -> Option<SortResult> {
     if !path.exists() {
         return Some(SortResult {
-            path: path.as_path().into(),
+            path: path.into(),
             error: Some(JsonError::NotFound),
         });
     }
@@ -129,7 +129,7 @@ fn sort_path(
         Ok(s) => s,
         Err(e) => {
             return Some(SortResult {
-                path: path.as_path().into(),
+                path: path.into(),
                 error: Some(e),
             })
         }
@@ -137,7 +137,7 @@ fn sort_path(
     let result = match sort_json_string(&file, use_spaces, sort_arrays, line_ending, indents) {
         Ok(json_string) => {
             if !dry_run {
-                match write_out(&path, json_string) {
+                match write_out(path, json_string) {
                     Ok(_) => None,
                     Err(error) => Some(error),
                 }
@@ -149,7 +149,7 @@ fn sort_path(
     };
 
     Some(SortResult {
-        path: path.as_path().into(),
+        path: path.into(),
         error: result,
     })
 }
@@ -160,7 +160,8 @@ fn is_ignored(path: &Path) -> bool {
             return IGNORED_FILES.iter().any(|f| path_str.contains(f));
         }
     }
-    return false;
+
+    false
 }
 
 fn path_to_relative(path: &Path) -> Result<String, Box<dyn Error>> {
@@ -260,7 +261,7 @@ fn sort_json_value(head: &mut Value, sort_arrays: bool) -> &mut Value {
 }
 
 fn sort_json_string(
-    input: &String,
+    input: &str,
     use_spaces: bool,
     sort_arrays: bool,
     line_ending: &LineEnding,
@@ -312,7 +313,7 @@ fn write_out(path: &Path, json_string: String) -> Result<(), JsonError> {
     Ok(())
 }
 
-fn collect_sortables(roots: &Vec<PathBuf>) -> Vec<PathBuf> {
+fn collect_sortables(roots: &[PathBuf]) -> Vec<PathBuf> {
     let mut results: Vec<PathBuf> = vec![];
 
     for root in roots {
@@ -342,7 +343,7 @@ fn collect_sortables(roots: &Vec<PathBuf>) -> Vec<PathBuf> {
     results
 }
 
-fn path_in_vec(path: &Path, list: &Vec<PathBuf>) -> bool {
+fn path_in_vec(path: &Path, list: &[PathBuf]) -> bool {
     list.iter().any(|result| {
         if !result.exists() || !path.exists() {
             return false;
@@ -365,7 +366,7 @@ mod tests {
     #[test]
     fn sort_arrays() -> Result<(), String> {
         let input: String = r#"["a", "A", "z", "Z", "m", "M"]"#.into();
-        let result = sort_json_string(&input, true, true, &LineEnding::LF, 2).unwrap();
+        let result = sort_json_string(&input, true, true, &LineEnding::Lf, 2).unwrap();
 
         let expected: String = r#"[
   "a",
@@ -385,7 +386,7 @@ mod tests {
     #[test]
     fn no_sort_arrays() -> Result<(), String> {
         let input: String = r#"["a", "A", "z", "Z", "m", "M"]"#.into();
-        let result = sort_json_string(&input, true, false, &LineEnding::LF, 2).unwrap();
+        let result = sort_json_string(&input, true, false, &LineEnding::Lf, 2).unwrap();
 
         let expected: String = r#"[
   "a",
@@ -416,7 +417,7 @@ mod tests {
         }"#
         .into();
 
-        let result = sort_json_string(&input, true, true, &LineEnding::LF, 2).unwrap();
+        let result = sort_json_string(&input, true, true, &LineEnding::Lf, 2).unwrap();
 
         let expected: String = r#"{
   "a": {
@@ -453,7 +454,7 @@ mod tests {
         }"#
         .into();
 
-        let result = sort_json_string(&input, true, false, &LineEnding::LF, 2).unwrap();
+        let result = sort_json_string(&input, true, false, &LineEnding::Lf, 2).unwrap();
 
         let expected: String = r#"{
   "a": {
@@ -485,7 +486,7 @@ mod tests {
 "#
         .into();
 
-        let result = sort_json_string(&input, true, false, &LineEnding::LF, 3).unwrap();
+        let result = sort_json_string(&input, true, false, &LineEnding::Lf, 3).unwrap();
 
         let expected: String = r#"{
    "a": 2,
@@ -507,7 +508,7 @@ mod tests {
 "#
         .into();
 
-        let result = sort_json_string(&input, false, false, &LineEnding::LF, 3).unwrap();
+        let result = sort_json_string(&input, false, false, &LineEnding::Lf, 3).unwrap();
 
         let expected: String = "{
 \t\t\t\"a\": 2,
@@ -524,7 +525,7 @@ mod tests {
     fn indentation_3_tabs_array() -> Result<(), String> {
         let input: String = "[\n  \"z\",\n  \"a\"\n]".into();
 
-        let result = sort_json_string(&input, false, true, &LineEnding::LF, 3).unwrap();
+        let result = sort_json_string(&input, false, true, &LineEnding::Lf, 3).unwrap();
 
         let expected: String = "[
 \t\t\t\"a\",
@@ -571,7 +572,7 @@ mod tests {
     fn line_endings_crlf_in_cr_out() -> Result<(), String> {
         let input: String = format!(r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#, "\r\n").into();
 
-        let result = sort_json_string(&input, true, false, &LineEnding::CR, 2).unwrap();
+        let result = sort_json_string(&input, true, false, &LineEnding::Cr, 2).unwrap();
 
         assert_eq!(result, input.replace("\r\n", "\r"));
         Ok(())
@@ -581,7 +582,7 @@ mod tests {
     fn line_endings_crlf_in_lf_out() -> Result<(), String> {
         let input: String = format!(r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#, "\r\n").into();
 
-        let result = sort_json_string(&input, true, false, &LineEnding::LF, 2).unwrap();
+        let result = sort_json_string(&input, true, false, &LineEnding::Lf, 2).unwrap();
 
         assert_eq!(result, input.replace("\r\n", "\n"));
         Ok(())
@@ -591,12 +592,12 @@ mod tests {
     fn line_endings_lf_in_crlf_out() -> Result<(), String> {
         let input: String = format!(r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#, "\n").into();
 
-        let result = sort_json_string(&input, true, false, &LineEnding::CRLF, 2).unwrap();
+        let result = sort_json_string(&input, true, false, &LineEnding::CrLf, 2).unwrap();
 
         assert_eq!(result, input.replace("\n", "\r\n"));
         Ok(())
     }
-    
+
     #[test]
     fn large_complex() -> Result<(), String> {
         let minified: String = r#"{"root":true,"env":{"es6":true,"node":true},"extends":["eslint:recommended","plugin:prettier/recommended"],"parserOptions":{"ecmaVersion":2018,"sourceType":"module"},"plugins":["ava","scanjs-rules","no-unsanitized","import"],"rules":{"ava/assertion-arguments":"error","ava/max-asserts":["off",5],"ava/no-async-fn-without-await":"error","ava/no-cb-test":"off","ava/no-duplicate-modifiers":"error","ava/no-identical-title":"error","ava/no-invalid-end":"error","ava/no-nested-tests":"error","ava/no-only-test":"error","ava/no-skip-assert":"error","ava/no-skip-test":"error","ava/no-statement-after-end":"error","ava/no-todo-implementation":"error","ava/no-todo-test":"warn","ava/no-unknown-modifiers":"error","ava/prefer-async-await":"error","ava/prefer-power-assert":"off","ava/test-ended":"error","ava/test-title":["error","if-multiple"],"ava/use-t":"error","ava/use-t-well":"error","ava/use-test":"error","ava/use-true-false":"error","curly":"error","import/no-extraneous-dependencies":["error",{"devDependencies":["**/*test.js","test/**/*.*","rollup.config.js"]}],"no-constant-condition":["error",{"checkLoops":false}],"no-console":"off","no-else-return":"error","no-inner-declarations":"error","no-unneeded-ternary":"error","no-useless-return":"error","no-var":"error","one-var":["error","never"],"prefer-arrow-callback":"error","prefer-const":"error","prefer-template":"error","strict":"error","scanjs-rules/accidental_assignment":1,"scanjs-rules/assign_to_hostname":1,"scanjs-rules/assign_to_href":1,"scanjs-rules/assign_to_location":1,"scanjs-rules/assign_to_onmessage":1,"scanjs-rules/assign_to_pathname":1,"scanjs-rules/assign_to_protocol":1,"scanjs-rules/assign_to_search":1,"scanjs-rules/assign_to_src":1,"scanjs-rules/call_Function":1,"scanjs-rules/call_addEventListener":1,"scanjs-rules/call_addEventListener_deviceproximity":1,"scanjs-rules/call_addEventListener_message":1,"scanjs-rules/call_connect":1,"scanjs-rules/call_eval":1,"scanjs-rules/call_execScript":1,"scanjs-rules/call_hide":1,"scanjs-rules/call_open_remote=true":1,"scanjs-rules/call_parseFromString":1,"scanjs-rules/call_setImmediate":1,"scanjs-rules/call_setInterval":1,"scanjs-rules/call_setTimeout":1,"scanjs-rules/identifier_indexedDB":1,"scanjs-rules/identifier_localStorage":1,"scanjs-rules/identifier_sessionStorage":1,"scanjs-rules/new_Function":1,"scanjs-rules/property_addIdleObserver":1,"scanjs-rules/property_createContextualFragment":1,"scanjs-rules/property_crypto":1,"scanjs-rules/property_geolocation":1,"scanjs-rules/property_getUserMedia":1,"scanjs-rules/property_indexedDB":1,"scanjs-rules/property_localStorage":1,"scanjs-rules/property_mgmt":1,"scanjs-rules/property_sessionStorage":1,"symbol-description":"error","yoda":["error","never",{"exceptRange":true}]}}"#.into();
@@ -728,7 +729,7 @@ mod tests {
 \t}
 }\n";
 
-        let result = sort_json_string(&minified, false, false, &LineEnding::LF, 1).unwrap();
+        let result = sort_json_string(&minified, false, false, &LineEnding::Lf, 1).unwrap();
 
         assert_eq!(result, prettified);
         Ok(())

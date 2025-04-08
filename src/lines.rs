@@ -11,9 +11,9 @@ use std::env;
 #[derive(Clone, Debug)]
 pub enum LineEnding {
     SystemDefault,
-    CR,
-    LF,
-    CRLF,
+    Cr,
+    Lf,
+    CrLf,
 }
 
 // rustc flags LineEnding::from_str as unused,
@@ -22,9 +22,9 @@ pub enum LineEnding {
 impl LineEnding {
     pub fn from_str(s: &str) -> Result<LineEnding, std::string::ParseError> {
         let result = match s.to_lowercase().as_str() {
-            "cr" => LineEnding::CR,
-            "lf" => LineEnding::LF,
-            "crlf" => LineEnding::CRLF,
+            "cr" => LineEnding::Cr,
+            "lf" => LineEnding::Lf,
+            "crlf" => LineEnding::CrLf,
             _ => LineEnding::SystemDefault,
         };
 
@@ -33,20 +33,20 @@ impl LineEnding {
 
     pub fn as_str(&self) -> &str {
         match self {
-            LineEnding::CR => "\r",
-            LineEnding::LF => "\n",
-            LineEnding::CRLF => "\r\n",
+            LineEnding::Cr => "\r",
+            LineEnding::Lf => "\n",
+            LineEnding::CrLf => "\r\n",
             LineEnding::SystemDefault => self.get_default_str(),
         }
     }
 
     pub fn parse_str(s: &str) -> LineEnding {
-        if let Some(_) = s.find(LineEnding::CRLF.as_str()) {
-            LineEnding::CRLF
-        } else if let Some(_) = s.find(LineEnding::LF.as_str()) {
-            LineEnding::LF
-        } else if let Some(_) = s.find(LineEnding::CR.as_str()) {
-            LineEnding::CR
+        if s.contains(LineEnding::CrLf.as_str()) {
+            LineEnding::CrLf
+        } else if s.contains(LineEnding::Lf.as_str()) {
+            LineEnding::Lf
+        } else if s.contains(LineEnding::Cr.as_str()) {
+            LineEnding::Cr
         } else {
             LineEnding::SystemDefault
         }
@@ -54,9 +54,9 @@ impl LineEnding {
 
     fn get_default_str(&self) -> &str {
         match env::consts::FAMILY {
-            "linux" => LineEnding::LF.as_str(),
-            "windows" => LineEnding::CRLF.as_str(),
-            _ => LineEnding::LF.as_str(),
+            "linux" => LineEnding::Lf.as_str(),
+            "windows" => LineEnding::CrLf.as_str(),
+            _ => LineEnding::Lf.as_str(),
         }
     }
 }
