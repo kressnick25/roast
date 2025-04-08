@@ -1,0 +1,67 @@
+use assert_cmd::Command;
+use assertables::assert_contains;
+
+#[test]
+fn no_input() -> Result<(), String> {
+    let mut cmd = Command::cargo_bin("roast").unwrap();
+    cmd.assert()
+        .failure()
+        .stderr("The inputs don't lead to any json files! Exiting.\n");
+
+    Ok(())
+}
+
+// TODO
+#[test]
+fn silent() -> Result<(), String> {
+    let mut cmd = Command::cargo_bin("roast").unwrap();
+    let res = cmd.arg("--silent").assert().failure();
+
+    let out = res.get_output();
+
+    assert!(out.stderr.len() == 0);
+    assert!(out.stdout.len() == 0);
+
+    Ok(())
+}
+
+#[test]
+fn silent_no_inputs() -> Result<(), String> {
+    let mut cmd = Command::cargo_bin("roast").unwrap();
+    let res = cmd.arg("--silent").assert().failure();
+
+    let out = res.get_output();
+
+    assert!(out.stderr.len() == 0);
+    assert!(out.stdout.len() == 0);
+
+    Ok(())
+}
+
+#[test]
+fn help_overrides_silent() -> Result<(), String> {
+    let mut cmd = Command::cargo_bin("roast").unwrap();
+    let res = cmd.arg("--silent").arg("--help").assert().success();
+
+    let out = res.get_output();
+    let stdout = String::from_utf8(out.stdout.clone()).unwrap();
+
+    assert!(out.stderr.len() == 0);
+    assert_contains!(stdout, "Usage: roast [OPTIONS] [FILES]...");
+
+    Ok(())
+}
+
+#[test]
+fn verbose_overrides_silent() -> Result<(), String> {
+    let mut cmd = Command::cargo_bin("roast").unwrap();
+    let res = cmd.arg("--verbose").arg("--silent").assert().failure();
+
+    let out = res.get_output();
+    let stderr = String::from_utf8(out.stderr.clone()).unwrap();
+
+    assert!(out.stdout.len() == 0);
+    assert_contains!(stderr, "The inputs don't lead to any json files! Exiting.\n");
+
+    Ok(())
+}
