@@ -55,6 +55,11 @@ jobs:
           toolchain: stable
           override: true
 
+      - name: Unit tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+
       - name: Build executable
         uses: actions-rs/cargo@v1
         with:
