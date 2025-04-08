@@ -1,6 +1,11 @@
 use assert_cmd::Command;
 use assertables::assert_contains;
 
+#[cfg(windows)]
+const BINARY_NAME: &'static str = "roast.exe";
+#[cfg(not(windows))]
+const BINARY_NAME: &'static str = "roast";
+
 #[test]
 fn no_input() -> Result<(), String> {
     let mut cmd = Command::cargo_bin("roast").unwrap();
@@ -47,7 +52,7 @@ fn help_overrides_silent() -> Result<(), String> {
     let stdout = String::from_utf8(out.stdout.clone()).unwrap();
 
     assert!(out.stderr.len() == 0);
-    assert_contains!(stdout, "Usage: roast [OPTIONS] [FILES]...");
+    assert_contains!(stdout, &format!("Usage: {} [OPTIONS] [FILES]...", BINARY_NAME));
 
     Ok(())
 }
