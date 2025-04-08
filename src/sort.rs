@@ -137,10 +137,7 @@ fn sort_path(
     let result = match sort_json_string(&file, use_spaces, sort_arrays, line_ending, indents) {
         Ok(json_string) => {
             if !dry_run {
-                match write_out(path, json_string) {
-                    Ok(_) => None,
-                    Err(error) => Some(error),
-                }
+                write_out(path, json_string).err()
             } else {
                 None
             }

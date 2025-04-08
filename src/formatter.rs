@@ -21,13 +21,13 @@ impl<'a> LineFormatter<'a> {
     }
 }
 
-impl<'a> Default for LineFormatter<'a> {
+impl Default for LineFormatter<'_> {
     fn default() -> Self {
         LineFormatter::new(b"  ", LineEnding::SystemDefault)
     }
 }
 
-impl<'a> Formatter for LineFormatter<'a> {
+impl Formatter for LineFormatter<'_> {
     #[inline]
     fn begin_array<W>(&mut self, writer: &mut W) -> io::Result<()>
     where
