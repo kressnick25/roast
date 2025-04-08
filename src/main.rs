@@ -121,7 +121,7 @@ fn get_git_modified() -> Result<Vec<PathBuf>, git2::Error> {
             // index = staged, wt + not new = tracked, unstaged
             s.is_wt_modified() || s.is_wt_renamed() || s.is_wt_typechange()
         })
-        .filter_map(|s| s.path().and_then(|path| Some(PathBuf::from(path))))
+        .filter_map(|s| s.path().map(PathBuf::from))
         .collect();
 
     Ok(res)
@@ -189,8 +189,8 @@ fn cli(args: Args) {
         log::debug!("Reading paths from stdin");
         files = io::stdin()
             .lines()
-            .filter_map(|f| f.ok())
-            .map(|f| PathBuf::from(f))
+            .map_while(Result::ok)
+            .map(PathBuf::from)
             .collect();
     }
 
