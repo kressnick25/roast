@@ -68,7 +68,7 @@ test("01 - array, LF line endings, preserve original", async () => {
     "c": "d",
     "p": "r"
   }
-]${EOL}`,
+]\n`,
     "01.01"
   );
 });
