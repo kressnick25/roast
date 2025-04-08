@@ -284,24 +284,22 @@ fn sort_json_string(
     };
 
     let whitespace_char = if use_spaces { ' ' } else { '\t' };
-    let mut json_string = match serialize_json(&json, whitespace_char, indents, &desired_line_ending) {
-        Ok(s) => s,
-        Err(error) => {
-            log::debug!("Serialization error: {}", error);
-            return Err(JsonError::WriteError);
-        }
-    };
+    let mut json_string =
+        match serialize_json(&json, whitespace_char, indents, &desired_line_ending) {
+            Ok(s) => s,
+            Err(error) => {
+                log::debug!("Serialization error: {}", error);
+                return Err(JsonError::WriteError);
+            }
+        };
 
     // End file with line ending
-    json_string += line_ending.as_str();
+    json_string += desired_line_ending.as_str();
 
     Ok(json_string)
 }
 
-fn write_out(
-    path: &Path,
-    json_string: String,
-) -> Result<(), JsonError> {
+fn write_out(path: &Path, json_string: String) -> Result<(), JsonError> {
     // TODO optimize this by sorting all the file contents in memory first, then saving
     match fs::write(path, json_string) {
         Ok(()) => (),
@@ -353,4 +351,249 @@ fn path_in_vec(path: &Path, list: &Vec<PathBuf>) -> bool {
         let path_str = path.canonicalize().unwrap_or_default();
         result_str == path_str
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[cfg(windows)]
+    const EOL: &'static str = "\r\n";
+    #[cfg(not(windows))]
+    const EOL: &'static str = "\n";
+
+    #[test]
+    fn sort_arrays() -> Result<(), String> {
+        let input: String = r#"["a", "A", "z", "Z", "m", "M"]"#.into();
+        let result = sort_json_string(&input, true, true, &LineEnding::LF, 2).unwrap();
+
+        let expected: String = r#"[
+  "a",
+  "A",
+  "m",
+  "M",
+  "z",
+  "Z"
+]
+"#
+        .into();
+
+        assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn no_sort_arrays() -> Result<(), String> {
+        let input: String = r#"["a", "A", "z", "Z", "m", "M"]"#.into();
+        let result = sort_json_string(&input, true, false, &LineEnding::LF, 2).unwrap();
+
+        let expected: String = r#"[
+  "a",
+  "A",
+  "z",
+  "Z",
+  "m",
+  "M"
+]
+"#
+        .into();
+
+        assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn sort_arrays_deep_objects() -> Result<(), String> {
+        let input: String = r#"{
+          "a": {
+            "b": [
+              {
+                "c": "d"
+              },
+              ["z", "m", "A"]
+            ]
+          }
+        }"#
+        .into();
+
+        let result = sort_json_string(&input, true, true, &LineEnding::LF, 2).unwrap();
+
+        let expected: String = r#"{
+  "a": {
+    "b": [
+      {
+        "c": "d"
+      },
+      [
+        "A",
+        "m",
+        "z"
+      ]
+    ]
+  }
+}
+"#
+        .into();
+
+        assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn no_sort_arrays_deep_objects() -> Result<(), String> {
+        let input: String = r#"{
+          "a": {
+            "b": [
+              {
+                "c": "d"
+              },
+              ["z", "m", "A"]
+            ]
+          }
+        }"#
+        .into();
+
+        let result = sort_json_string(&input, true, false, &LineEnding::LF, 2).unwrap();
+
+        let expected: String = r#"{
+  "a": {
+    "b": [
+      {
+        "c": "d"
+      },
+      [
+        "z",
+        "m",
+        "A"
+      ]
+    ]
+  }
+}
+"#
+        .into();
+
+        assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn indentation_3_spaces() -> Result<(), String> {
+        let input: String = r#"{
+  "z": 1,
+  "a": 2
+}
+"#
+        .into();
+
+        let result = sort_json_string(&input, true, false, &LineEnding::LF, 3).unwrap();
+
+        let expected: String = r#"{
+   "a": 2,
+   "z": 1
+}
+"#
+        .into();
+
+        assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn indentation_3_tabs() -> Result<(), String> {
+        let input: String = r#"{
+  "z": 1,
+  "a": 2
+}
+"#
+        .into();
+
+        let result = sort_json_string(&input, false, false, &LineEnding::LF, 3).unwrap();
+
+        let expected: String = "{
+\t\t\t\"a\": 2,
+\t\t\t\"z\": 1
+}
+"
+        .into();
+
+        assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn indentation_3_tabs_array() -> Result<(), String> {
+        let input: String = "[\n  \"z\",\n  \"a\"\n]".into();
+
+        let result = sort_json_string(&input, false, true, &LineEnding::LF, 3).unwrap();
+
+        let expected: String = "[
+\t\t\t\"a\",
+\t\t\t\"z\"
+]
+"
+        .into();
+
+        assert_eq!(result, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn line_endings_system() -> Result<(), String> {
+        let input: String = format!(r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#, EOL).into();
+
+        let result = sort_json_string(&input, true, false, &LineEnding::SystemDefault, 2).unwrap();
+
+        assert_eq!(result, input);
+        Ok(())
+    }
+
+    #[test]
+    fn line_endings_preseve_original_crlf() -> Result<(), String> {
+        let input: String = format!(r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#, "\r\n").into();
+
+        let result = sort_json_string(&input, true, false, &LineEnding::SystemDefault, 2).unwrap();
+
+        assert_eq!(result, input);
+        Ok(())
+    }
+
+    #[test]
+    fn line_endings_preseve_original_lf() -> Result<(), String> {
+        let input: String = format!(r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#, "\n").into();
+
+        let result = sort_json_string(&input, true, false, &LineEnding::SystemDefault, 2).unwrap();
+
+        assert_eq!(result, input);
+        Ok(())
+    }
+
+    #[test]
+    fn line_endings_crlf_in_cr_out() -> Result<(), String> {
+        let input: String = format!(r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#, "\r\n").into();
+
+        let result = sort_json_string(&input, true, false, &LineEnding::CR, 2).unwrap();
+
+        assert_eq!(result, input.replace("\r\n", "\r"));
+        Ok(())
+    }
+
+    #[test]
+    fn line_endings_crlf_in_lf_out() -> Result<(), String> {
+        let input: String = format!(r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#, "\r\n").into();
+
+        let result = sort_json_string(&input, true, false, &LineEnding::LF, 2).unwrap();
+
+        assert_eq!(result, input.replace("\r\n", "\n"));
+        Ok(())
+    }
+
+    #[test]
+    fn line_endings_lf_in_crlf_out() -> Result<(), String> {
+        let input: String = format!(r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#, "\n").into();
+
+        let result = sort_json_string(&input, true, false, &LineEnding::CRLF, 2).unwrap();
+
+        assert_eq!(result, input.replace("\n", "\r\n"));
+        Ok(())
+    }
 }
