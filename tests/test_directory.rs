@@ -32,8 +32,8 @@ fn default_sort_directory() -> Result<(), String> {
 
     for (i, f) in TEST_FILE_PATHS.iter().enumerate() {
         let status_line = match f.contains("not_json") {
-            true => format!("{} - ParseError", PathBuf::from(f).to_string_lossy()),
-            false => format!("{} - OK", PathBuf::from(f).to_string_lossy()),
+            true => format!("{} - ParseError", f.replace("/", &format!("{}", std::path::MAIN_SEPARATOR).as_str())),
+            false => format!("{} - OK", f.replace("/", &format!("{}", std::path::MAIN_SEPARATOR).as_str())),
         };
         assert_contains!(stderr, &status_line);
 
