@@ -63,33 +63,14 @@ jobs:
       - name: Install latest nextest release
         uses: taiki-e/install-action@nextest
 
-      - name: Test with latest nextest release
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --no-run
+
+      - name: Test
         uses: actions-rs/cargo@v1
         with:
           command: nextest
           args: run --all-features --profile ci
-  build:
-    name: Build
-    needs: check
-    strategy:
-      matrix:
-        platform:
-          - runner: ubuntu-latest
-          - runner: macos-latest
-          - runner: windows-latest
-    runs-on: ${{ matrix.platform.runner }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install rust toolchain
-        run: rustup toolchain install stable --profile minimal
-
-      - name: cache
-        uses: Swatinem/rust-cache@v2
-
-      - name: Build executable
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --all-features
-
