@@ -7,10 +7,9 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: rustup
+      - name: Install rust toolchain
         run: rustup toolchain install stable --profile minimal
 
       - name: cache
@@ -21,26 +20,27 @@ jobs:
         with:
           command: check
 
+  clippy:
+    name: Lint
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Clippy
+        run: cargo clippy --all-targets --all-features
+
   test:
     name: Test Suite
     needs: check
     strategy:
       matrix:
-        node-version: [22.14.0]
         platform:
           - runner: ubuntu-latest
-            bin: roast
-            env_set: export ROAST_EXE=./roast
           - runner: macos-latest
-            bin: roast
-            env_set: export ROAST_EXE=./roast
           - runner: windows-latest
-            bin: roast.exe
-            env_set: $env:ROAST_EXE='./roast.exe'
     runs-on: ${{ matrix.platform.runner }}
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: rustup
         run: rustup toolchain install stable --profile minimal
@@ -48,20 +48,39 @@ jobs:
       - name: cache
         uses: Swatinem/rust-cache@v2
 
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Install cargo-nextest
+        uses: baptiste0928/cargo-install@v1
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
+          crate: cargo-nextest
+          locked: true
 
       - name: Unit tests
         uses: actions-rs/cargo@v1
         with:
-          command: test
+          command: nextest
 
-      # - name: Build executable
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: build
-      #     args: --release --all-features
+  build:
+    name: Build
+    needs: check
+    strategy:
+      matrix:
+        platform:
+          - runner: ubuntu-latest
+          - runner: macos-latest
+          - runner: windows-latest
+    runs-on: ${{ matrix.platform.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        run: rustup toolchain install stable --profile minimal
+
+      - name: cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build executable
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-features
+
