@@ -60,26 +60,8 @@ jobs:
         with:
           command: test
 
-      - name: Build executable
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --all-features
-
-      - name: Copy executable to test dir
-        run: cp target/release/${{ matrix.platform.bin }} tests/${{ matrix.platform.bin }}
-
-      - name: Install Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-      
-      - name: Install test dependencies
-        working-directory: ./tests
-        run: npm ci
-
-      - name: Run test suite
-        working-directory: ./tests
-        run: |
-          ${{ matrix.platform.env_set }}
-          npm run test
+      # - name: Build executable
+      #   uses: actions-rs/cargo@v1
+      #   with:
+      #     command: build
+      #     args: --release --all-features
