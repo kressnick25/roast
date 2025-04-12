@@ -7,4 +7,4 @@ echo "Stripping"
 strip target/aarch64-apple-darwin/release/roast
 
 echo "Packaging"
-tar czvf roast-macOS-arm64.tar.gz target/aarch64-apple-darwin/release/roast
+tar czvf roast-macOS-arm64.tar.gz -C target/aarch64-apple-darwin/release .

@@ -7,4 +7,4 @@ echo "Stripping"
 strip target/x86_64-unknown-linux-gnu/release/roast
 
 echo "Packaging"
-tar czvf roast-Linux-x86_64.tar.gz target/x86_64-unknown-linux-gnu/release/roast
+tar czvf roast-Linux-x86_64.tar.gz -C target/x86_64-unknown-linux-gnu/release .
