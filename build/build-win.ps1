@@ -5,8 +5,8 @@ cargo build --locked --release --target $target
 
 7z a $package "$(Get-Location)\target\$target\release\roast.exe"
 
-$hash = $(Get-FileHash -Path $package -Algorithm SHA256)
+$hash = $(Get-FileHash -Path .\$package -Algorithm SHA256)
 Write-Output "---- SHA256 hash of $package ----"
-Write-Output $h.Hash
+Write-Output $hash.Hash
 
-$h.Hash | Out-File "$package.sha256"
+$hash.Hash | Out-File "$package.sha256"
