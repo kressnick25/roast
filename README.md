@@ -6,7 +6,29 @@ roast is an implementation of [codesen/jsonsort-cli](https://github.com/codsen/c
 
 ## Installation
 
-Download the latest build for your platform from [Releases](https://github.com/kressnick25/roast/releases). Simply drop the executable into a location in your PATH.
+Download the latest build for your platform from [Releases](https://github.com/kressnick25/roast/releases).
+
+Then simply drop the executable into a location in your PATH.
+
+### Verify checksums
+
+Verify the checksum of the archive against the .sha256 hash file included on the Release page.
+```sh
+# Linux
+sha256sum roast-Linux-x86_64.tar.gz
+
+# MacOS
+shasum -a 256 roast-macOS-arm64.tar.gz
+
+# Windows
+Get-FileHash -Algorithm SHA256 -Path roast-Windows-x86_64.zip
+```
+
+The [Release Action](https://github.com/kressnick25/roast/actions/workflows/release.yml) will also log the checksum for each platform job, e.g.
+```
+---- SHA256 hash of roast-Windows-x86_64.zip ----
+3900F626A25D03E557B57E1E60C6B8304634C1B8C8680193F858017360ADB7AB
+```
 
 ### MacOS
 
