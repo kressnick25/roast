@@ -10,7 +10,7 @@ echo "Stripping"
 strip target/$TARGET/release/roast
 
 echo "Packaging"
-tar czvf $PACKAGE -C target/$TARGET/release .
+tar czvf $PACKAGE -C target/$TARGET/release roast
 
 # Generate checksum
 HASH=$(sha256sum $PACKAGE)
