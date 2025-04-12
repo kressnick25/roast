@@ -9,4 +9,4 @@ $hash = $(Get-FileHash -Path $package -Algorithm SHA256)
 Write-Output "---- SHA256 hash of $package ----"
 Write-Output $h.Hash
 
-$h.Hash > "$package.sha256"
+$h.Hash | Out-File "$package.sha256"
