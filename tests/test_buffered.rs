@@ -1,11 +1,6 @@
 use assert_cmd::Command;
 use assertables::{assert_contains, assert_is_empty};
 
-#[cfg(windows)]
-const BINARY_NAME: &str = "roast.exe";
-#[cfg(not(windows))]
-const BINARY_NAME: &str = "roast";
-
 #[test]
 fn buffered_mode() -> Result<(), String> {
     let mut cmd = Command::cargo_bin("roast").unwrap();
