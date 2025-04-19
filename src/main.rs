@@ -2,8 +2,11 @@ use clap::Parser;
 use colored::*;
 use git2::{Repository, Status};
 use log::{Level, LevelFilter, Metadata, Record};
+use sort::sort_json_string;
 use std::fmt::Display;
+use std::io::{Read, Write};
 use std::path::PathBuf;
+use std::process::exit;
 use std::{env, io};
 
 mod formatter;
@@ -30,6 +33,10 @@ struct Args {
     /// Also sort any arrays if they contain only string elements
     #[clap(long, short = 'a')]
     arrays: bool,
+
+    /// Operate in buffered mode, where JSON files are fead from stdin and written to stdout
+    #[clap(long, short = 'b')]
+    buffered: bool,
 
     /// Only list all the files to be processed
     #[clap(long, short = 'd')]
@@ -158,7 +165,6 @@ fn main() {
 }
 
 fn cli(args: Args) {
-
     // Configure logging
     let _ = log::set_logger(&LOGGER);
     log::set_max_level(LevelFilter::Info);
@@ -170,6 +176,20 @@ fn cli(args: Args) {
     }
 
     log::debug!("{args}");
+
+    let indents: usize = if args.indents == 0 {
+        if args.spaces {
+            INDENT_SIZE_SPACE
+        } else {
+            INDENT_SIZE_TAB
+        }
+    } else {
+        args.indents
+    };
+
+    if args.buffered {
+        buffered_mode(&args, indents);
+    }
 
     let files: Vec<PathBuf>;
     if args.git {
@@ -202,16 +222,6 @@ fn cli(args: Args) {
         std::process::exit(1);
     }
 
-    let indents: usize = if args.indents == 0 {
-        if args.spaces {
-            INDENT_SIZE_SPACE
-        } else {
-            INDENT_SIZE_TAB
-        }
-    } else {
-        args.indents
-    };
-
     let results = sort_files(
         &files,
         &args.line_ending,
@@ -234,5 +244,43 @@ fn cli(args: Args) {
         );
     } else {
         log::info!("{}", sort_result_output(results))
+    }
+}
+
+fn buffered_mode(args: &Args, indents: usize) {
+    let stdin = io::stdin();
+    let mut input = Vec::new();
+    {
+        let mut handle = stdin.lock();
+        let res = handle.read_to_end(&mut input);
+        if res.is_err() || res.is_ok_and(|x| x == 0) {
+            log::info!("No input");
+            exit(1);
+        }
+    }
+    let s_input = match String::from_utf8(input) {
+        Ok(s) => s,
+        Err(e) => {
+            log::error!("Error parsing input : {}", e);
+            exit(1);
+        }
+    };
+
+    match sort_json_string(
+        &s_input,
+        args.spaces,
+        args.arrays,
+        &args.line_ending,
+        indents,
+    ) {
+        Ok(s) => {
+            print!("{}", s);
+            io::stdout().flush().unwrap();
+            exit(0);
+        }
+        Err(e) => {
+            log::error!("Error {:?}", e);
+            exit(1);
+        }
     }
 }

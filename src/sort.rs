@@ -257,7 +257,7 @@ fn sort_json_value(head: &mut Value, sort_arrays: bool) -> &mut Value {
     head
 }
 
-fn sort_json_string(
+pub fn sort_json_string(
     input: &str,
     use_spaces: bool,
     sort_arrays: bool,
