@@ -243,7 +243,7 @@ fn io_mode(args: &Args, indents: usize) {
     let s_input = match String::from_utf8(input) {
         Ok(s) => s,
         Err(e) => {
-            log::error!("Error parsing input : {}", e);
+            log::error!("Error parsing input : {e}");
             exit(1);
         }
     };
@@ -256,12 +256,12 @@ fn io_mode(args: &Args, indents: usize) {
         indents,
     ) {
         Ok(s) => {
-            print!("{}", s);
+            print!("{s}");
             io::stdout().flush().unwrap();
             exit(0);
         }
         Err(e) => {
-            log::error!("Error {:?}", e);
+            log::error!("Error {e:?}");
             exit(1);
         }
     }
