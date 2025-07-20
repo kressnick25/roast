@@ -6,7 +6,6 @@ fn buffered_mode() -> Result<(), String> {
     let mut cmd = Command::cargo_bin("roast").unwrap();
     let res = cmd
         .write_stdin("{\"test\": 2}")
-        .arg("--buffered")
         .arg("--lineEnding")
         .arg("lf")
         .assert()
@@ -26,7 +25,6 @@ fn buffered_mode_newlines_ignored() -> Result<(), String> {
     let mut cmd = Command::cargo_bin("roast").unwrap();
     let res = cmd
         .write_stdin("{\"test\": 2}\n\n\n\n")
-        .arg("-b")
         .arg("--lineEnding")
         .arg("lf")
         .assert()
@@ -46,7 +44,6 @@ fn buffered_mode_invalid_input() -> Result<(), String> {
     let mut cmd = Command::cargo_bin("roast").unwrap();
     let res = cmd
         .write_stdin("asdf")
-        .arg("-b")
         .arg("--lineEnding")
         .arg("lf")
         .assert()

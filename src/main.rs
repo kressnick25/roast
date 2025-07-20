@@ -34,10 +34,6 @@ struct Args {
     #[clap(long, short = 'a')]
     arrays: bool,
 
-    /// Operate in buffered mode, where JSON files are fead from stdin and written to stdout
-    #[clap(long, short = 'b')]
-    buffered: bool,
-
     /// Only list all the files to be processed
     #[clap(long, short = 'd')]
     dry: bool,
@@ -67,7 +63,8 @@ struct Args {
     #[clap(long, short = 'v')]
     verbose: bool,
 
-    /// Space separated list of file paths to sort. Glob patterns (files/*.json) should be expanded by your shell
+    /// Space separated list of file paths to sort. 
+    /// If no paths are supplied, roast will read JSON from stdin and write to stdout.
     files: Vec<PathBuf>,
 }
 
@@ -187,10 +184,6 @@ fn cli(args: Args) {
         args.indents
     };
 
-    if args.buffered {
-        buffered_mode(&args, indents);
-    }
-
     let files: Vec<PathBuf>;
     if args.git {
         log::debug!("Reading paths from git");
@@ -206,20 +199,9 @@ fn cli(args: Args) {
         log::debug!("Reading paths from argv");
         files = args.files;
     } else {
-        log::debug!("Reading paths from stdin");
-        files = io::stdin()
-            .lines()
-            .map_while(Result::ok)
-            .map(PathBuf::from)
-            .collect();
-    }
-
-    if files.is_empty() {
-        log::info!(
-            "{}",
-            "The inputs don't lead to any json files! Exiting.".red()
-        );
-        std::process::exit(1);
+        log::debug!("Reading from stdin");
+        io_mode(&args, indents);
+        std::process::exit(0)
     }
 
     let results = sort_files(
@@ -247,7 +229,7 @@ fn cli(args: Args) {
     }
 }
 
-fn buffered_mode(args: &Args, indents: usize) {
+fn io_mode(args: &Args, indents: usize) {
     let stdin = io::stdin();
     let mut input = Vec::new();
     {

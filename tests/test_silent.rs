@@ -6,15 +6,6 @@ const BINARY_NAME: &str = "roast.exe";
 #[cfg(not(windows))]
 const BINARY_NAME: &str = "roast";
 
-#[test]
-fn no_input() -> Result<(), String> {
-    let mut cmd = Command::cargo_bin("roast").unwrap();
-    cmd.assert()
-        .failure()
-        .stderr("The inputs don't lead to any json files! Exiting.\n");
-
-    Ok(())
-}
 
 // TODO
 #[test]
@@ -63,10 +54,8 @@ fn verbose_overrides_silent() -> Result<(), String> {
     let res = cmd.arg("--verbose").arg("--silent").assert().failure();
 
     let out = res.get_output();
-    let stderr = String::from_utf8(out.stderr.clone()).unwrap();
 
     assert_is_empty!(out.stdout);
-    assert_contains!(stderr, "The inputs don't lead to any json files! Exiting.\n");
 
     Ok(())
 }
