@@ -133,15 +133,15 @@ fn sort_result_output(results: Vec<SortResult>) -> String {
 
     let out: String;
     if fail_count > 0 {
-        let ok = format!("{} files sorted", ok_count).green();
-        let fail = format!("{} files could not be sorted", fail_count).red();
-        out = format!("{}\n{}", ok, fail).bold().to_string();
+        let ok = format!("{ok_count} files sorted").green();
+        let fail = format!("{fail_count} files could not be sorted").red();
+        out = format!("{ok}\n{fail}").bold().to_string();
     } else if ok_count == 0 {
         out = "The inputs don't lead to any json files! Exiting."
             .red()
             .to_string();
     } else {
-        out = format!("{} files sorted", ok_count)
+        out = format!("{ok_count} files sorted")
             .green()
             .bold()
             .to_string();
@@ -169,7 +169,7 @@ fn cli(args: Args) {
         log::set_max_level(LevelFilter::Error);
     }
 
-    log::debug!("{}", args);
+    log::debug!("{args}");
 
     let files: Vec<PathBuf>;
     if args.git {
@@ -177,7 +177,7 @@ fn cli(args: Args) {
         files = match get_git_modified() {
             Ok(f) => f,
             Err(err) => {
-                log::debug!("Error reading git repo status: {}", err);
+                log::debug!("Error reading git repo status: {err}");
                 log::error!("fatal: not a git repository");
                 std::process::exit(1);
             }
@@ -222,7 +222,7 @@ fn cli(args: Args) {
     );
 
     for result in results.iter() {
-        log::info!("{}", result)
+        log::info!("{result}")
     }
 
     log::info!("");

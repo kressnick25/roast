@@ -52,7 +52,7 @@ fn help_overrides_silent() -> Result<(), String> {
     let stdout = String::from_utf8(out.stdout.clone()).unwrap();
 
     assert_is_empty!(out.stderr);
-    assert_contains!(stdout, &format!("Usage: {} [OPTIONS] [FILES]...", BINARY_NAME));
+    assert_contains!(stdout, &format!("Usage: {BINARY_NAME} [OPTIONS] [FILES]..."));
 
     Ok(())
 }

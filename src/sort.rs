@@ -62,7 +62,7 @@ impl Display for SortResult {
             let err_msg = format!("{:?}", self.error.as_ref().expect("Not possible"))
                 .red()
                 .bold();
-            write!(f, "{} - {}", path_str, err_msg)
+            write!(f, "{path_str} - {err_msg}")
         }
     }
 }
@@ -180,7 +180,7 @@ fn path_to_relative(path: &Path) -> Result<String, Box<dyn Error>> {
     };
     let out = re.replace_all(out, "");
 
-    Ok(format!("./{}", out))
+    Ok(format!("./{out}"))
 }
 
 fn read_file(path: &Path) -> Result<String, JsonError> {
@@ -192,7 +192,7 @@ fn read_file(path: &Path) -> Result<String, JsonError> {
     let file = match fs::read_to_string(path) {
         Ok(s) => s,
         Err(error) => {
-            log::debug!("Failed to read file: {}", error);
+            log::debug!("Failed to read file: {error}");
             return Err(JsonError::ReadError);
         }
     };
@@ -245,7 +245,7 @@ fn sort_json_value(head: &mut Value, sort_arrays: bool) -> &mut Value {
         Value::Object(obj) => {
             log::trace!("Sorting object");
             for (key, val) in obj.iter_mut() {
-                log::trace!("Sorted object value. key: {}", key);
+                log::trace!("Sorted object value. key: {key}");
                 sort_json_value(val, sort_arrays);
             }
         }
@@ -267,7 +267,7 @@ fn sort_json_string(
     let mut json: Value = match serde_json::from_str(input) {
         Ok(v) => v,
         Err(error) => {
-            log::debug!("Failed to parse json file. error: {}", error);
+            log::debug!("Failed to parse json file. error: {error}");
             return Err(JsonError::ParseError);
         }
     };
@@ -286,7 +286,7 @@ fn sort_json_string(
         match serialize_json(&json, whitespace_char, indents, &desired_line_ending) {
             Ok(s) => s,
             Err(error) => {
-                log::debug!("Serialization error: {}", error);
+                log::debug!("Serialization error: {error}");
                 return Err(JsonError::WriteError);
             }
         };
@@ -302,7 +302,7 @@ fn write_out(path: &Path, json_string: String) -> Result<(), JsonError> {
     match fs::write(path, json_string) {
         Ok(()) => (),
         Err(error) => {
-            log::debug!("File write error: {}", error);
+            log::debug!("File write error: {error}");
             return Err(JsonError::WriteError);
         }
     };
@@ -537,7 +537,7 @@ mod test {
 
     #[test]
     fn line_endings_system() -> Result<(), String> {
-        let input: String = format!(r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#, EOL);
+        let input: String = format!(r#"[{EOL}  {{{EOL}    "a": "y",{EOL}    "b": "b"{EOL}  }},{EOL}  {{{EOL}    "c": "r",{EOL}    "p": "d"{EOL}  }}{EOL}]{EOL}"#);
 
         let result = sort_json_string(&input, true, false, &LineEnding::SystemDefault, 2).unwrap();
 

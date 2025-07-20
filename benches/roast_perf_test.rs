@@ -36,7 +36,7 @@ fn sort_fn(c: &mut Criterion) {
             test_file, 
             |b, b_test_file|{
                 b.iter(|| {
-                    let path = PathBuf::from(format!("./benches/data/{}.json", b_test_file));
+                    let path = PathBuf::from(format!("./benches/data/{b_test_file}.json"));
                     if !path.exists() { panic!("Test data not found: {:?}", path.to_str()) }
                     // Fn being benchmarked
                     sort_files(
