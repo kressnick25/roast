@@ -13,7 +13,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install rust toolchain
         run: rustup toolchain install stable --profile minimal
@@ -31,7 +31,7 @@ jobs:
     needs: check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Run Clippy
         run: cargo clippy --all-targets --all-features --color always
 
@@ -46,7 +46,7 @@ jobs:
           - runner: windows-latest
     runs-on: ${{ matrix.platform.runner }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: rustup
         run: rustup toolchain install stable --profile minimal
