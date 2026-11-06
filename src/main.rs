@@ -135,21 +135,20 @@ fn sort_result_output(results: Vec<SortResult>) -> String {
     let ok_count = results.iter().filter(|r| r.success()).count();
     let fail_count = results.len() - ok_count;
 
-    let out: String;
-    if fail_count > 0 {
+    let out: String = if fail_count > 0 {
         let ok = format!("{ok_count} files sorted").green();
         let fail = format!("{fail_count} files could not be sorted").red();
-        out = format!("{ok}\n{fail}").bold().to_string();
+        format!("{ok}\n{fail}").bold().to_string()
     } else if ok_count == 0 {
-        out = "The inputs don't lead to any json files! Exiting."
+        "The inputs don't lead to any json files! Exiting."
             .red()
-            .to_string();
+            .to_string()
     } else {
-        out = format!("{ok_count} files sorted")
+        format!("{ok_count} files sorted")
             .green()
             .bold()
-            .to_string();
-    }
+            .to_string()
+    };
 
     out
 }
