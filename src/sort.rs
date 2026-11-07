@@ -4,6 +4,7 @@ use serde::ser::Serialize;
 use serde_json::{Serializer, Value};
 use std::env;
 use std::error::Error;
+use std::collections::HashSet;
 use std::fmt::Display;
 use std::fs::{self};
 use std::path::{Path, PathBuf};
@@ -151,11 +152,9 @@ fn sort_path(
     })
 }
 
-fn is_ignored(path: &Path) -> bool {
-    if let Ok(full_path) = path.canonicalize() {
-        if let Some(path_str) = full_path.to_str() {
-            return IGNORED_FILES.iter().any(|f| path_str.contains(f));
-        }
+fn is_ignored(full_path: &Path) -> bool {
+    if let Some(path_str) = full_path.to_str() {
+        return IGNORED_FILES.iter().any(|f| path_str.contains(f));
     }
 
     false
@@ -312,6 +311,7 @@ fn write_out(path: &Path, json_string: String) -> Result<(), JsonError> {
 
 fn collect_sortables(roots: &[PathBuf]) -> Vec<PathBuf> {
     let mut results: Vec<PathBuf> = vec![];
+    let mut seen: HashSet<PathBuf> = HashSet::new();
 
     for root in roots {
         if root.is_dir() {
@@ -322,14 +322,14 @@ fn collect_sortables(roots: &[PathBuf]) -> Vec<PathBuf> {
                 .filter(|e| e.path().is_file())
             {
                 let entry_path = entry.path();
-                if is_ignored(entry_path) || path_in_vec(entry_path, &results) {
+                if should_skip(entry_path, &mut seen) {
                     log::debug!("Ignored: {:?}", entry_path.to_str());
                     continue;
                 }
                 results.push(entry_path.to_path_buf());
             }
         } else {
-            if is_ignored(root) || path_in_vec(root, &results) {
+            if should_skip(root, &mut seen) {
                 log::debug!("Ignored: {:?}", root.to_str());
                 continue;
             }
@@ -340,15 +340,13 @@ fn collect_sortables(roots: &[PathBuf]) -> Vec<PathBuf> {
     results
 }
 
-fn path_in_vec(path: &Path, list: &[PathBuf]) -> bool {
-    list.iter().any(|result| {
-        if !result.exists() || !path.exists() {
-            return false;
-        }
-        let result_str = result.canonicalize().unwrap_or_default();
-        let path_str = path.canonicalize().unwrap_or_default();
-        result_str == path_str
-    })
+/// Returns true if `path` is ignored or has already been collected.
+/// Records the canonical path in `seen` otherwise.
+fn should_skip(path: &Path, seen: &mut HashSet<PathBuf>) -> bool {
+    match path.canonicalize() {
+        Ok(full_path) => is_ignored(&full_path) || !seen.insert(full_path),
+        Err(_) => false,
+    }
 }
 
 #[cfg(test)]
