@@ -125,7 +125,7 @@ fn get_git_modified() -> Result<Vec<PathBuf>, git2::Error> {
             // index = staged, wt + not new = tracked, unstaged
             s.is_wt_modified() || s.is_wt_renamed() || s.is_wt_typechange()
         })
-        .filter_map(|s| s.path().map(PathBuf::from))
+        .filter_map(|s| s.path().ok().map(PathBuf::from))
         .collect();
 
     Ok(res)
