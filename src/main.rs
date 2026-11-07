@@ -16,6 +16,9 @@ mod sort;
 use crate::lines::LineEnding;
 use crate::sort::{sort_files, SortResult};
 
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 const APP_NAME: &str = "roast";
 const APP_VERSION: &str = "0.3.0";
 const APP_AUTHOR: &str = "Nicholas Kress";
