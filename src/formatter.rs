@@ -58,7 +58,7 @@ impl Formatter for LineFormatter<'_> {
     where
         W: ?Sized + io::Write,
     {
-        writer.write_all(json_ending(first, &self.line_ending).as_bytes())?;
+        write_json_ending(writer, first, &self.line_ending)?;
         indent(writer, self.current_indent, self.indent)
     }
 
@@ -101,7 +101,7 @@ impl Formatter for LineFormatter<'_> {
     where
         W: ?Sized + io::Write,
     {
-        writer.write_all(json_ending(first, &self.line_ending).as_bytes())?;
+        write_json_ending(writer, first, &self.line_ending)?;
         indent(writer, self.current_indent, self.indent)
     }
 
@@ -123,12 +123,15 @@ impl Formatter for LineFormatter<'_> {
     }
 }
 
-fn json_ending(first: bool, line_ending: &LineEnding) -> String {
-    if first {
-        line_ending.as_str().to_owned()
-    } else {
-        format!(",{}", line_ending.as_str()).to_string()
+fn write_json_ending<W>(wr: &mut W, first: bool, line_ending: &LineEnding) -> io::Result<()>
+where
+    W: ?Sized + io::Write,
+{
+    if !first {
+        wr.write_all(b",")?;
     }
+
+    wr.write_all(line_ending.as_str().as_bytes())
 }
 
 fn indent<W>(wr: &mut W, n: usize, s: &[u8]) -> io::Result<()>
