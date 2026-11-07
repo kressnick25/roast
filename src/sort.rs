@@ -228,12 +228,7 @@ fn sort_json_value(head: &mut Value, sort_arrays: bool) -> &mut Value {
         Value::Array(list) => {
             if sort_arrays {
                 if list.iter().all(|f| f.is_string()) {
-                    list.sort_by(|a, b| {
-                        a.as_str()
-                            .unwrap_or_default()
-                            .to_lowercase()
-                            .cmp(&b.as_str().unwrap_or_default().to_lowercase())
-                    });
+                    list.sort_by_cached_key(|v| v.as_str().unwrap_or_default().to_lowercase());
                     log::trace!("Sorted array")
                 } else {
                     log::trace!("Cannot sort array containing non-strings");
