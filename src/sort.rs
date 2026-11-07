@@ -1,10 +1,11 @@
 use colored::*;
+use rayon::prelude::*;
 use regex::Regex;
 use serde::ser::Serialize;
 use serde_json::{Serializer, Value};
+use std::collections::HashSet;
 use std::env;
 use std::error::Error;
-use std::collections::HashSet;
 use std::fmt::Display;
 use std::fs::{self};
 use std::path::{Path, PathBuf};
@@ -93,25 +94,13 @@ pub fn sort_files(
     indents: usize,
     dry_run: bool,
 ) -> Vec<SortResult> {
-    let mut results: Vec<SortResult> = vec![];
-
     let all_paths = collect_sortables(files);
 
-    for path in all_paths {
-        let res = sort_path(
-            &path,
-            dry_run,
-            line_ending,
-            use_spaces,
-            sort_arrays,
-            indents,
-        );
-        if let Some(r) = res {
-            results.push(r)
-        }
-    }
-
-    results
+    // Files are independent; par_iter keeps results in input order
+    all_paths
+        .par_iter()
+        .filter_map(|path| sort_path(path, dry_run, line_ending, use_spaces, sort_arrays, indents))
+        .collect()
 }
 
 fn sort_path(
@@ -538,7 +527,9 @@ mod test {
 
     #[test]
     fn line_endings_system() -> Result<(), String> {
-        let input: String = format!(r#"[{EOL}  {{{EOL}    "a": "y",{EOL}    "b": "b"{EOL}  }},{EOL}  {{{EOL}    "c": "r",{EOL}    "p": "d"{EOL}  }}{EOL}]{EOL}"#);
+        let input: String = format!(
+            r#"[{EOL}  {{{EOL}    "a": "y",{EOL}    "b": "b"{EOL}  }},{EOL}  {{{EOL}    "c": "r",{EOL}    "p": "d"{EOL}  }}{EOL}]{EOL}"#
+        );
 
         let result = sort_json_string(&input, true, false, &LineEnding::SystemDefault, 2).unwrap();
 
@@ -548,7 +539,10 @@ mod test {
 
     #[test]
     fn line_endings_preseve_original_crlf() -> Result<(), String> {
-        let input: String = format!(r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#, "\r\n");
+        let input: String = format!(
+            r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#,
+            "\r\n"
+        );
 
         let result = sort_json_string(&input, true, false, &LineEnding::SystemDefault, 2).unwrap();
 
@@ -558,7 +552,10 @@ mod test {
 
     #[test]
     fn line_endings_preseve_original_lf() -> Result<(), String> {
-        let input: String = format!(r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#, "\n");
+        let input: String = format!(
+            r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#,
+            "\n"
+        );
 
         let result = sort_json_string(&input, true, false, &LineEnding::SystemDefault, 2).unwrap();
 
@@ -568,7 +565,10 @@ mod test {
 
     #[test]
     fn line_endings_crlf_in_cr_out() -> Result<(), String> {
-        let input: String = format!(r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#, "\r\n");
+        let input: String = format!(
+            r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#,
+            "\r\n"
+        );
 
         let result = sort_json_string(&input, true, false, &LineEnding::Cr, 2).unwrap();
 
@@ -578,7 +578,10 @@ mod test {
 
     #[test]
     fn line_endings_crlf_in_lf_out() -> Result<(), String> {
-        let input: String = format!(r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#, "\r\n");
+        let input: String = format!(
+            r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#,
+            "\r\n"
+        );
 
         let result = sort_json_string(&input, true, false, &LineEnding::Lf, 2).unwrap();
 
@@ -588,7 +591,10 @@ mod test {
 
     #[test]
     fn line_endings_lf_in_crlf_out() -> Result<(), String> {
-        let input: String = format!(r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#, "\n");
+        let input: String = format!(
+            r#"[{0}  {{{0}    "a": "y",{0}    "b": "b"{0}  }},{0}  {{{0}    "c": "r",{0}    "p": "d"{0}  }}{0}]{0}"#,
+            "\n"
+        );
 
         let result = sort_json_string(&input, true, false, &LineEnding::CrLf, 2).unwrap();
 
