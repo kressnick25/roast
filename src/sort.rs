@@ -9,14 +9,11 @@ use std::error::Error;
 use std::fmt::Display;
 use std::fs::{self};
 use std::path::{Path, PathBuf};
-use std::thread;
 use walkdir::WalkDir;
 
 pub use crate::formatter::LineFormatter;
 pub use crate::lines::LineEnding;
 
-/// Inputs at least this large have their parsed tree dropped on another thread
-const DEFER_DROP_BYTES: usize = 1 << 20;
 const INVALID_PATH: &str = "INVALID_PATH";
 const IGNORED_FILES: &[&str] = &[
     "node_modules",
@@ -276,11 +273,6 @@ pub fn sort_json_string(
                 return Err(JsonError::WriteError);
             }
         };
-
-    // Freeing a large Value tree is slow, so overlap it with the caller's work
-    if input.len() >= DEFER_DROP_BYTES {
-        thread::spawn(move || drop(json));
-    }
 
     // End file with line ending
     json_string += desired_line_ending.as_str();
