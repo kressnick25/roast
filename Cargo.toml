@@ -13,7 +13,7 @@ debug = 0
 [dependencies]
 clap = { version = "4.5.35", features = ["derive"] }
 colored = "3.0.0"
-git2 = "0.20"
+git2 = "0.21"
 log = "0.4.27"
 regex = "1.11.1"
 serde = { version = "1.0", features = ["derive"] }
@@ -21,7 +21,7 @@ serde_json = "1.0"
 walkdir = "2.5"
 
 [dev-dependencies]
-criterion = "0.6"
+criterion = "0.8"
 assert_cmd = "2.0"
 tempfile = "3.19"
 assertables = "9.5.1"
