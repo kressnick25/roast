@@ -16,12 +16,17 @@ mod sort;
 use crate::lines::LineEnding;
 use crate::sort::{sort_files, SortResult};
 
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 const APP_NAME: &str = "roast";
 const APP_VERSION: &str = "0.3.0";
 const APP_AUTHOR: &str = "Nicholas Kress";
 const APP_ABOUT: &str = "Sort JSON files by key.
 Rust implementation of the npm package: json-sort-cli.";
 
+/// Upper bound on parallel file sorts
+const MAX_THREADS: usize = 4;
 const INDENT_SIZE_SPACE: usize = 2;
 const INDENT_SIZE_TAB: usize = 1;
 
@@ -155,6 +160,14 @@ fn sort_result_output(results: Vec<SortResult>) -> String {
 fn main() {
     // CLI args
     let args = Args::parse();
+
+    // Each in-flight file holds its whole parsed tree, so memory grows with threads
+    let threads = std::thread::available_parallelism()
+        .map_or(1, |n| n.get())
+        .min(MAX_THREADS);
+    let _ = rayon::ThreadPoolBuilder::new()
+        .num_threads(threads)
+        .build_global();
 
     cli(args)
 }
