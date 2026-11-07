@@ -18,6 +18,10 @@ use crate::lines::LineEnding;
 #[path = "../src/formatter.rs"]
 mod formatter;
 
+// Match the allocator used by the shipped binary
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 const SAMPLE_SIZE: usize = 10;
 
 fn sort_fn(c: &mut Criterion) {
